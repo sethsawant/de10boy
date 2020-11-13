@@ -1,0 +1,16 @@
+Analysis & Synthesis Status : Successful - Thu Nov 12 23:16:55 2020
+Quartus Prime Version : 18.1.0 Build 625 09/12/2018 SJ Lite Edition
+Revision Name : de10boy
+Top-level Entity Name : memory
+Family : MAX 10
+Total logic elements : 93
+    Total combinational functions : 90
+    Dedicated logic registers : 3
+Total registers : 3
+Total pins : 34
+Total virtual pins : 0
+Total memory bits : 788,480
+Embedded Multiplier 9-bit elements : 0
+Total PLLs : 0
+UFM blocks : 0
+ADC blocks : 0
