@@ -21,7 +21,7 @@ refer to the applicable agreement for further details.
 (header "symbol" (version "1.2"))
 (symbol
 	(rect 0 0 216 128)
-	(text "ram" (rect 97 0 122 16)(font "Arial" (font_size 10)))
+	(text "ram_8k" (rect 87 0 137 16)(font "Arial" (font_size 10)))
 	(text "inst" (rect 8 112 25 124)(font "Arial" ))
 	(port
 		(pt 0 32)
@@ -40,8 +40,8 @@ refer to the applicable agreement for further details.
 	(port
 		(pt 0 64)
 		(input)
-		(text "address[15..0]" (rect 0 0 82 14)(font "Arial" (font_size 8)))
-		(text "address[15..0]" (rect 4 50 72 63)(font "Arial" (font_size 8)))
+		(text "address[12..0]" (rect 0 0 82 14)(font "Arial" (font_size 8)))
+		(text "address[12..0]" (rect 4 50 72 63)(font "Arial" (font_size 8)))
 		(line (pt 0 64)(pt 88 64)(line_width 3))
 	)
 	(port
@@ -60,8 +60,8 @@ refer to the applicable agreement for further details.
 	)
 	(drawing
 		(text "8 bits" (rect 109 23 191 153)(font "Arial" )(vertical))
-		(text "65536 words" (rect 120 13 217 183)(font "Arial" )(vertical))
-		(text "Block type: AUTO" (rect 48 114 170 239)(font "Arial" ))
+		(text "8192 words" (rect 120 12 214 177)(font "Arial" )(vertical))
+		(text "Block type: M9K" (rect 48 114 164 239)(font "Arial" ))
 		(line (pt 104 24)(pt 136 24))
 		(line (pt 136 24)(pt 136 96))
 		(line (pt 136 96)(pt 104 96))

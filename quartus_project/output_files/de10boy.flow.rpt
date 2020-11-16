@@ -1,5 +1,5 @@
 Flow report for de10boy
-Thu Nov 12 23:17:11 2020
+Sun Nov 15 16:01:02 2020
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -40,20 +40,20 @@ refer to the applicable agreement for further details.
 +----------------------------------------------------------------------------------+
 ; Flow Summary                                                                     ;
 +------------------------------------+---------------------------------------------+
-; Flow Status                        ; Successful - Thu Nov 12 23:17:11 2020       ;
+; Flow Status                        ; Successful - Sun Nov 15 16:01:02 2020       ;
 ; Quartus Prime Version              ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                      ; de10boy                                     ;
 ; Top-level Entity Name              ; memory                                      ;
 ; Family                             ; MAX 10                                      ;
 ; Device                             ; 10M50DAF484C7G                              ;
 ; Timing Models                      ; Final                                       ;
-; Total logic elements               ; 93 / 49,760 ( < 1 % )                       ;
-;     Total combinational functions  ; 91 / 49,760 ( < 1 % )                       ;
-;     Dedicated logic registers      ; 3 / 49,760 ( < 1 % )                        ;
-; Total registers                    ; 3                                           ;
-; Total pins                         ; 34 / 360 ( 9 % )                            ;
+; Total logic elements               ; 128 / 49,760 ( < 1 % )                      ;
+;     Total combinational functions  ; 128 / 49,760 ( < 1 % )                      ;
+;     Dedicated logic registers      ; 2 / 49,760 ( < 1 % )                        ;
+; Total registers                    ; 2                                           ;
+; Total pins                         ; 66 / 360 ( 18 % )                           ;
 ; Total virtual pins                 ; 0                                           ;
-; Total memory bits                  ; 788,480 / 1,677,312 ( 47 % )                ;
+; Total memory bits                  ; 464,896 / 1,677,312 ( 28 % )                ;
 ; Embedded Multiplier 9-bit elements ; 0 / 288 ( 0 % )                             ;
 ; Total PLLs                         ; 0 / 4 ( 0 % )                               ;
 ; UFM blocks                         ; 0 / 1 ( 0 % )                               ;
@@ -66,7 +66,7 @@ refer to the applicable agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 11/12/2020 23:16:48 ;
+; Start date & time ; 11/15/2020 16:00:39 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; de10boy             ;
 +-------------------+---------------------+
@@ -77,7 +77,7 @@ refer to the applicable agreement for further details.
 +-------------------------------------+----------------------------------------+---------------+-------------+----------------+
 ; Assignment Name                     ; Value                                  ; Default Value ; Entity Name ; Section Id     ;
 +-------------------------------------+----------------------------------------+---------------+-------------+----------------+
-; COMPILER_SIGNATURE_ID               ; 185410939836453.160524460719532        ; --            ; --          ; --             ;
+; COMPILER_SIGNATURE_ID               ; 185410939836453.160547763905916        ; --            ; --          ; --             ;
 ; EDA_OUTPUT_DATA_FORMAT              ; Systemverilog Hdl                      ; --            ; --          ; eda_simulation ;
 ; EDA_SIMULATION_TOOL                 ; ModelSim-Altera (SystemVerilog)        ; <None>        ; --          ; --             ;
 ; EDA_TIME_SCALE                      ; 1 ps                                   ; --            ; --          ; eda_simulation ;
@@ -92,6 +92,13 @@ refer to the applicable agreement for further details.
 ; MISC_FILE                           ; cart_rom.bsf                           ; --            ; --          ; --             ;
 ; MISC_FILE                           ; cart_rom_bb.v                          ; --            ; --          ; --             ;
 ; MISC_FILE                           ; cart_rom.cmp                           ; --            ; --          ; --             ;
+; MISC_FILE                           ; ram_8k.bsf                             ; --            ; --          ; --             ;
+; MISC_FILE                           ; ram_8k_bb.v                            ; --            ; --          ; --             ;
+; MISC_FILE                           ; ram_8k.cmp                             ; --            ; --          ; --             ;
+; MISC_FILE                           ; ram_256.bsf                            ; --            ; --          ; --             ;
+; MISC_FILE                           ; ram_256_bb.v                           ; --            ; --          ; --             ;
+; MISC_FILE                           ; ram_256.cmp                            ; --            ; --          ; --             ;
+; NUM_PARALLEL_PROCESSORS             ; 8                                      ; --            ; --          ; --             ;
 ; OUTPUT_IO_TIMING_FAR_END_VMEAS      ; Half Signal Swing                      ; --            ; --          ; --             ;
 ; OUTPUT_IO_TIMING_FAR_END_VMEAS      ; Half Signal Swing                      ; --            ; --          ; --             ;
 ; OUTPUT_IO_TIMING_NEAR_END_VMEAS     ; Half Vccio                             ; --            ; --          ; --             ;
@@ -111,12 +118,12 @@ refer to the applicable agreement for further details.
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name          ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis ; 00:00:08     ; 1.0                     ; 4790 MB             ; 00:00:16                           ;
-; Fitter               ; 00:00:06     ; 1.2                     ; 5922 MB             ; 00:00:10                           ;
-; Assembler            ; 00:00:02     ; 1.0                     ; 4685 MB             ; 00:00:02                           ;
-; Timing Analyzer      ; 00:00:02     ; 1.5                     ; 4870 MB             ; 00:00:03                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4661 MB             ; 00:00:01                           ;
-; Total                ; 00:00:19     ; --                      ; --                  ; 00:00:32                           ;
+; Analysis & Synthesis ; 00:00:07     ; 1.0                     ; 4815 MB             ; 00:00:16                           ;
+; Fitter               ; 00:00:07     ; 1.2                     ; 5916 MB             ; 00:00:11                           ;
+; Assembler            ; 00:00:02     ; 1.0                     ; 4684 MB             ; 00:00:02                           ;
+; Timing Analyzer      ; 00:00:02     ; 1.4                     ; 4875 MB             ; 00:00:02                           ;
+; EDA Netlist Writer   ; 00:00:00     ; 1.0                     ; 4661 MB             ; 00:00:01                           ;
+; Total                ; 00:00:18     ; --                      ; --                  ; 00:00:32                           ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 
