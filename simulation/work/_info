@@ -1,0 +1,175 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dS:/FilesSSD/ECE_385/Final_Project/de10boy/simulation
+vboot_rom
+!s110 1605813425
+!i10b 1
+!s100 MOU2Y>ZD6cJ84BXd=^cAS0
+I8d93[9DefRK?<NDH>AEmS1
+Z1 VDg1SIo80bB@j0V0VzS_@n1
+R0
+w1605813348
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/simulation/boot_rom.v
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/simulation/boot_rom.v
+L0 39
+Z2 OV;L;10.5b;63
+r1
+!s85 0
+31
+!s108 1605813425.000000
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/simulation/boot_rom.v|
+!s90 -reportprogress|300|-work|work|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/simulation/boot_rom.v|
+!i113 1
+o-work work
+Z3 tCvgOpt 0
+vcpu
+Z4 DXx6 sv_std 3 std 0 22 AD7iAPLo6nTIKk<N0eo=D3
+!s110 1605978147
+!i10b 1
+!s100 ?PgV4oa:]YnRXCe3jPPjd1
+IkF_E2A]ezM_:c<7BjS?TJ0
+R1
+!s105 cpu_sv_unit
+S1
+R0
+w1605978142
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cpu.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cpu.sv
+L0 1
+R2
+r1
+!s85 0
+31
+!s108 1605978147.000000
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cpu.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cpu.sv|
+!i113 1
+Z5 o-work work -sv
+R3
+vcpu_testbench
+R4
+!s110 1605833024
+!i10b 1
+!s100 EZRS4P]SKETESW>DoaXcM1
+IlWQSi=8VJ>PgS@V_TlClj1
+R1
+!s105 cpu_testbench_sv_unit
+S1
+R0
+w1605833019
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/simulation/cpu_testbench.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/simulation/cpu_testbench.sv
+L0 1
+R2
+r1
+!s85 0
+31
+!s108 1605833024.000000
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/simulation/cpu_testbench.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/simulation/cpu_testbench.sv|
+!i113 1
+R5
+R3
+vmemory
+R4
+!s110 1605721949
+!i10b 1
+!s100 VK[4_fbSGXeHh3On6gD5V1
+IT9FMmFiGKCSPgilQ3^b7S0
+R1
+!s105 memory_sv_unit
+S1
+R0
+w1605492149
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/memory.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/memory.sv
+L0 3
+R2
+r1
+!s85 0
+31
+!s108 1605721949.000000
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/memory.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/memory.sv|
+!i113 1
+R5
+R3
+vopcode_string
+R4
+!s110 1605812230
+!i10b 1
+!s100 >W`]VSEJaW^5omQoIzAoY1
+IJZ<mo72TeY342O=Hg;M7A0
+R1
+!s105 opcode_string_sv_unit
+S1
+R0
+w1605811468
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/opcode_string.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/opcode_string.sv
+L0 3
+R2
+r1
+!s85 0
+31
+!s108 1605812230.000000
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/opcode_string.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/opcode_string.sv|
+!i113 1
+R5
+R3
+vreg_file
+R4
+!s110 1605722178
+!i10b 1
+!s100 bIjA2^UaO;2::`JYNDXJX3
+I8BXc_@H5Vzmg:3EE>62?00
+R1
+!s105 reg_file_sv_unit
+S1
+R0
+w1605722173
+8S:\FilesSSD\ECE_385\Final_Project\de10boy\quartus_project\reg_file.sv
+FS:\FilesSSD\ECE_385\Final_Project\de10boy\quartus_project\reg_file.sv
+L0 1
+R2
+r1
+!s85 0
+31
+!s108 1605722178.000000
+!s107 S:\FilesSSD\ECE_385\Final_Project\de10boy\quartus_project\reg_file.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:\FilesSSD\ECE_385\Final_Project\de10boy\quartus_project\reg_file.sv|
+!i113 1
+R5
+R3
+vregister
+R4
+!s110 1605722182
+!i10b 1
+!s100 `?XV0PCSPIk]1Nl9K_Qaj3
+Iio`TXWedER6SURWfDnX>L2
+R1
+!s105 reg_sv_unit
+S1
+R0
+w1605722169
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/reg.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/reg.sv
+L0 2
+R2
+r1
+!s85 0
+31
+!s108 1605722182.000000
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/reg.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/reg.sv|
+!i113 1
+R5
+R3
