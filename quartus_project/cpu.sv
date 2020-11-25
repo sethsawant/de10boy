@@ -1226,8 +1226,10 @@ enum logic [10:0] 	{   RESET,
 
 
 // debug 
-reg [24*8-1:0] opcode_str, cb_opcode_str;
-opcode_string opcode_to_string (.current_op(OR), .opcode_str(opcode_str), .cb_opcode_str(cb_opcode_str));
+logic set_prefixed_op_flag, clear_prefixed_op_flag, is_prefixed_op;
+register #(.WIDTH(1)) is_prefixed_op_flag (.in(set_prefixed_op_flag), .clock(clock), .reset(clear_prefixed_op_flag), .load(set_prefixed_op_flag), .out(is_prefixed_op));
+reg [24*8-1:0] opcode_str;
+opcode_string opcode_to_string (.current_op(OR), .is_prefixed_op(is_prefixed_op), .opcode_str(opcode_str));
 
 
 always_ff @ (posedge clock)
@@ -2327,9 +2329,13 @@ begin
 	DE_new = DE;
 	HL_new = HL;
 
+	set_prefixed_op_flag = 1'b0;
+	clear_prefixed_op_flag = 1'b0;
+
 	case (State)
 						RESET : begin
 							mem_addr = PC;
+							clear_prefixed_op_flag = 1'b1;
 						end
 						FETCH : begin
 							mem_addr = PC;
@@ -2337,6 +2343,7 @@ begin
 							OR_ld = 1'b1;
 							PC_new = PC + 1'b1;
 							PC_ld = 1'b1;
+							clear_prefixed_op_flag = 1'b1;
 						end
 						PREFIX_CB : begin
 							mem_addr = PC;
@@ -2344,6 +2351,7 @@ begin
 							OR_ld = 1'b1;
 							PC_new = PC + 1'b1;
 							PC_ld = 1'b1;
+							set_prefixed_op_flag = 1'b1;
 						end
 /*      NOP      */     NOP_00           : ;
 /*   LD BC d16   */     LD_01_0          : ;
