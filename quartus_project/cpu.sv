@@ -2952,7 +2952,7 @@ begin
 /*    BIT 6 L    */     BIT_75           : `BIT(6,L)         
 /*   BIT 6 (HL)  */     BIT_76_0         : `get_one_byte(OP8)
                         BIT_76_1         : `BIT(6,OP8)       
-/*    BIT 6 A    */     BIT_77           : `BIT(7,A)         
+/*    BIT 6 A    */     BIT_77           : `BIT(6,A)         
 /*    BIT 7 B    */     BIT_78           : `BIT(7,B)         
 /*    BIT 7 C    */     BIT_79           : `BIT(7,C)         
 /*    BIT 7 D    */     BIT_7A           : `BIT(7,D)         
