@@ -19,13 +19,6 @@ Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  
 Top level modules:
 	cart_rom
 
-} {} {}} S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/opcode_string.sv {1 {vlog -work de10boy -sv -stats=none S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/opcode_string.sv
-Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
--- Compiling module opcode_string
-
-Top level modules:
-	opcode_string
-
 } {} {}} S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/memory.sv {1 {vlog -work de10boy -sv -stats=none S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/memory.sv
 Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
 -- Compiling module memory

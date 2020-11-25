@@ -2407,7 +2407,7 @@ begin
 /*   LD HL d16   */     LD_21_0          : `get_low_byte(OP16)
                         LD_21_1          : `get_high_byte(OP16)
                         LD_21_2          : `writeRegFromReg(HL,OP16)
-/*   LD (HL) A   */     LD_22_0          : ;
+/*   LD (HL+) A  */     LD_22_0          : ;
                         LD_22_1          : ;
 /*     INC HL    */     INC_23_0         : ;
                         INC_23_1         : ;
@@ -2421,7 +2421,7 @@ begin
                         JR_28_2          : ;
 /*   ADD HL HL   */     ADD_29_0         : ;
                         ADD_29_1         : ;
-/*   LD A (HL)   */     LD_2A_0          : ;
+/*   LD A (HL+)  */     LD_2A_0          : ;
                         LD_2A_1          : ;
 /*     DEC HL    */     DEC_2B_0         : ;
                         DEC_2B_1         : ;
@@ -2455,7 +2455,7 @@ begin
                         JR_38_2          : ;
 /*   ADD HL SP   */     ADD_39_0         : ;
                         ADD_39_1         : ;
-/*   LD A (HL)   */     LD_3A_0          : ;
+/*   LD A (HL-)  */     LD_3A_0          : ;
                         LD_3A_1          : ;
 /*     DEC SP    */     DEC_3B_0         : ;
                         DEC_3B_1         : ;
