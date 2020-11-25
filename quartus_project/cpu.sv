@@ -2890,78 +2890,78 @@ begin
                         SRL_3E_1         : ;
                         SRL_3E_2         : ;
 /*     SRL A     */     SRL_3F           : ;
-/*    BIT 0 B    */     BIT_40           : ;
-/*    BIT 0 C    */     BIT_41           : ;
-/*    BIT 0 D    */     BIT_42           : ;
-/*    BIT 0 E    */     BIT_43           : ;
-/*    BIT 0 H    */     BIT_44           : ;
-/*    BIT 0 L    */     BIT_45           : ;
-/*   BIT 0 (HL)  */     BIT_46_0         : ;
-                        BIT_46_1         : ;
-/*    BIT 0 A    */     BIT_47           : ;
-/*    BIT 1 B    */     BIT_48           : ;
-/*    BIT 1 C    */     BIT_49           : ;
-/*    BIT 1 D    */     BIT_4A           : ;
-/*    BIT 1 E    */     BIT_4B           : ;
-/*    BIT 1 H    */     BIT_4C           : ;
-/*    BIT 1 L    */     BIT_4D           : ;
-/*   BIT 1 (HL)  */     BIT_4E_0         : ;
-                        BIT_4E_1         : ;
-/*    BIT 1 A    */     BIT_4F           : ;
-/*    BIT 2 B    */     BIT_50           : ;
-/*    BIT 2 C    */     BIT_51           : ;
-/*    BIT 2 D    */     BIT_52           : ;
-/*    BIT 2 E    */     BIT_53           : ;
-/*    BIT 2 H    */     BIT_54           : ;
-/*    BIT 2 L    */     BIT_55           : ;
-/*   BIT 2 (HL)  */     BIT_56_0         : ;
-                        BIT_56_1         : ;
-/*    BIT 2 A    */     BIT_57           : ;
-/*    BIT 3 B    */     BIT_58           : ;
-/*    BIT 3 C    */     BIT_59           : ;
-/*    BIT 3 D    */     BIT_5A           : ;
-/*    BIT 3 E    */     BIT_5B           : ;
-/*    BIT 3 H    */     BIT_5C           : ;
-/*    BIT 3 L    */     BIT_5D           : ;
-/*   BIT 3 (HL)  */     BIT_5E_0         : ;
-                        BIT_5E_1         : ;
-/*    BIT 3 A    */     BIT_5F           : ;
-/*    BIT 4 B    */     BIT_60           : ;
-/*    BIT 4 C    */     BIT_61           : ;
-/*    BIT 4 D    */     BIT_62           : ;
-/*    BIT 4 E    */     BIT_63           : ;
-/*    BIT 4 H    */     BIT_64           : ;
-/*    BIT 4 L    */     BIT_65           : ;
-/*   BIT 4 (HL)  */     BIT_66_0         : ;
-                        BIT_66_1         : ;
-/*    BIT 4 A    */     BIT_67           : ;
-/*    BIT 5 B    */     BIT_68           : ;
-/*    BIT 5 C    */     BIT_69           : ;
-/*    BIT 5 D    */     BIT_6A           : ;
-/*    BIT 5 E    */     BIT_6B           : ;
-/*    BIT 5 H    */     BIT_6C           : ;
-/*    BIT 5 L    */     BIT_6D           : ;
-/*   BIT 5 (HL)  */     BIT_6E_0         : ;
-                        BIT_6E_1         : ;
-/*    BIT 5 A    */     BIT_6F           : ;
-/*    BIT 6 B    */     BIT_70           : ;
-/*    BIT 6 C    */     BIT_71           : ;
-/*    BIT 6 D    */     BIT_72           : ;
-/*    BIT 6 E    */     BIT_73           : ;
-/*    BIT 6 H    */     BIT_74           : ;
-/*    BIT 6 L    */     BIT_75           : ;
-/*   BIT 6 (HL)  */     BIT_76_0         : ;
-                        BIT_76_1         : ;
-/*    BIT 6 A    */     BIT_77           : ;
-/*    BIT 7 B    */     BIT_78           : ;
-/*    BIT 7 C    */     BIT_79           : ;
-/*    BIT 7 D    */     BIT_7A           : ;
-/*    BIT 7 E    */     BIT_7B           : ;
-/*    BIT 7 H    */     BIT_7C           : `BIT(7,H)
-/*    BIT 7 L    */     BIT_7D           : ;
-/*   BIT 7 (HL)  */     BIT_7E_0         : ;
-                        BIT_7E_1         : ;
-/*    BIT 7 A    */     BIT_7F           : ;
+/*    BIT 0 B    */     BIT_40           : `BIT(0,B)         
+/*    BIT 0 C    */     BIT_41           : `BIT(0,C)         
+/*    BIT 0 D    */     BIT_42           : `BIT(0,D)         
+/*    BIT 0 E    */     BIT_43           : `BIT(0,E)         
+/*    BIT 0 H    */     BIT_44           : `BIT(0,H)         
+/*    BIT 0 L    */     BIT_45           : `BIT(0,L)         
+/*   BIT 0 (HL)  */     BIT_46_0         : `get_one_byte(OP8)
+                        BIT_46_1         : `BIT(0,OP8)       
+/*    BIT 0 A    */     BIT_47           : `BIT(0,A)         
+/*    BIT 1 B    */     BIT_48           : `BIT(1,B)         
+/*    BIT 1 C    */     BIT_49           : `BIT(1,C)         
+/*    BIT 1 D    */     BIT_4A           : `BIT(1,D)         
+/*    BIT 1 E    */     BIT_4B           : `BIT(1,E)         
+/*    BIT 1 H    */     BIT_4C           : `BIT(1,H)         
+/*    BIT 1 L    */     BIT_4D           : `BIT(1,L)         
+/*   BIT 1 (HL)  */     BIT_4E_0         : `get_one_byte(OP8)
+                        BIT_4E_1         : `BIT(1,OP8)       
+/*    BIT 1 A    */     BIT_4F           : `BIT(1,A)         
+/*    BIT 2 B    */     BIT_50           : `BIT(2,B)         
+/*    BIT 2 C    */     BIT_51           : `BIT(2,C)         
+/*    BIT 2 D    */     BIT_52           : `BIT(2,D)         
+/*    BIT 2 E    */     BIT_53           : `BIT(2,E)         
+/*    BIT 2 H    */     BIT_54           : `BIT(2,H)         
+/*    BIT 2 L    */     BIT_55           : `BIT(2,L)         
+/*   BIT 2 (HL)  */     BIT_56_0         : `get_one_byte(OP8)
+                        BIT_56_1         : `BIT(2,OP8)       
+/*    BIT 2 A    */     BIT_57           : `BIT(2,A)         
+/*    BIT 3 B    */     BIT_58           : `BIT(3,B)         
+/*    BIT 3 C    */     BIT_59           : `BIT(3,C)         
+/*    BIT 3 D    */     BIT_5A           : `BIT(3,D)         
+/*    BIT 3 E    */     BIT_5B           : `BIT(3,E)         
+/*    BIT 3 H    */     BIT_5C           : `BIT(3,H)         
+/*    BIT 3 L    */     BIT_5D           : `BIT(3,L)         
+/*   BIT 3 (HL)  */     BIT_5E_0         : `get_one_byte(OP8)
+                        BIT_5E_1         : `BIT(3,OP8)       
+/*    BIT 3 A    */     BIT_5F           : `BIT(3,A)         
+/*    BIT 4 B    */     BIT_60           : `BIT(4,B)         
+/*    BIT 4 C    */     BIT_61           : `BIT(4,C)         
+/*    BIT 4 D    */     BIT_62           : `BIT(4,D)         
+/*    BIT 4 E    */     BIT_63           : `BIT(4,E)         
+/*    BIT 4 H    */     BIT_64           : `BIT(4,H)         
+/*    BIT 4 L    */     BIT_65           : `BIT(4,L)         
+/*   BIT 4 (HL)  */     BIT_66_0         : `get_one_byte(OP8)
+                        BIT_66_1         : `BIT(4,OP8)       
+/*    BIT 4 A    */     BIT_67           : `BIT(4,A)         
+/*    BIT 5 B    */     BIT_68           : `BIT(5,B)         
+/*    BIT 5 C    */     BIT_69           : `BIT(5,C)         
+/*    BIT 5 D    */     BIT_6A           : `BIT(5,D)         
+/*    BIT 5 E    */     BIT_6B           : `BIT(5,E)         
+/*    BIT 5 H    */     BIT_6C           : `BIT(5,H)         
+/*    BIT 5 L    */     BIT_6D           : `BIT(5,L)         
+/*   BIT 5 (HL)  */     BIT_6E_0         : `get_one_byte(OP8)
+                        BIT_6E_1         : `BIT(5,OP8)       
+/*    BIT 5 A    */     BIT_6F           : `BIT(5,A)         
+/*    BIT 6 B    */     BIT_70           : `BIT(6,B)         
+/*    BIT 6 C    */     BIT_71           : `BIT(6,C)         
+/*    BIT 6 D    */     BIT_72           : `BIT(6,D)         
+/*    BIT 6 E    */     BIT_73           : `BIT(6,E)         
+/*    BIT 6 H    */     BIT_74           : `BIT(6,H)         
+/*    BIT 6 L    */     BIT_75           : `BIT(6,L)         
+/*   BIT 6 (HL)  */     BIT_76_0         : `get_one_byte(OP8)
+                        BIT_76_1         : `BIT(6,OP8)       
+/*    BIT 6 A    */     BIT_77           : `BIT(7,A)         
+/*    BIT 7 B    */     BIT_78           : `BIT(7,B)         
+/*    BIT 7 C    */     BIT_79           : `BIT(7,C)         
+/*    BIT 7 D    */     BIT_7A           : `BIT(7,D)         
+/*    BIT 7 E    */     BIT_7B           : `BIT(7,E)         
+/*    BIT 7 H    */     BIT_7C           : `BIT(7,H)         
+/*    BIT 7 L    */     BIT_7D           : `BIT(7,L)         
+/*   BIT 7 (HL)  */     BIT_7E_0         : `get_one_byte(OP8)	
+                        BIT_7E_1         : `BIT(7,OP8)       
+/*    BIT 7 A    */     BIT_7F           : `BIT(7,A)         
 /*    RES 0 B    */     RES_80           : ;
 /*    RES 0 C    */     RES_81           : ;
 /*    RES 0 D    */     RES_82           : ;
