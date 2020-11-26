@@ -99,7 +99,7 @@ register L_reg (.in(L_final_new), .clock(clock), .reset(reset), .load(L_ld | HL_
 // 	.Z_flag_new(Z_ALU), .N_flag_new(N_ALU), .H_flag_new(H_ALU), .C_flag_new(C_ALU));
 
 // instruction macros
-`define get_one_byte(dst) \
+`define getOneByte(dst) \
 begin \
 	mem_addr = PC; \
 	``dst``_new = data_in; \
@@ -108,7 +108,7 @@ begin \
 	PC_ld = 1'b1; \
 end
 
-`define get_high_byte(dst) \
+`define getHighByte(dst) \
 begin \
 	mem_addr = PC; \
 	``dst``_new = {data_in, ``dst``[7:0]}; \
@@ -117,7 +117,7 @@ begin \
 	PC_ld = 1'b1; \
 end
 
-`define get_low_byte(dst) \
+`define getLowByte(dst) \
 begin \
 	mem_addr = PC; \
 	``dst``_new = {``dst``[15:8], data_in}; \
@@ -126,25 +126,27 @@ begin \
 	PC_ld = 1;\
 end
 
-`define writeRegFromReg(dst,src) \
+`define loadRegFromReg(dst,src) \
 begin \
 	``dst``_new = ``src; \
 	``dst``_ld = 1'b1; \
 end
 
-`define writeMemFromReg(addr_src,data_src) \
+`define writeToMemAtRegAddr(addr_src,data_src) \
 begin \
 	mem_addr = addr_src; \
 	data_out = data_src; \
 	mem_wren = 1'b1; \
 end
 
-`define readMemFromReg(addr_src, dst) \
+`define readMemFromRegAddr(dst,addr_src) \
 begin \
 	mem_addr = addr_src; \
 	``dst``_new = data_in; \
 	``dst``_ld = 1'b1; \
 end
+
+// 8 bit ALU operations //////////////////////////////////////////
 
 `define ADD(src) \
 begin \
@@ -153,7 +155,7 @@ begin \
 	Z_flag_new = (A_new == 8'h0); \
 	N_flag_new = 1'b0; \
 	{H_flag_new, tmp} = A[3:0] + ``src``[3:0]; \
-	{C_flag_new, result} = A + src; \
+	{C_flag_new, A_new} = A + src; \
 end
 
 `define ADC(src) \
@@ -163,7 +165,7 @@ begin \
 	Z_flag_new = (A_new == 8'h0); \
 	N_flag_new = 1'b0; \
 	{H_flag_new, tmp} = A[3:0] + src[3:0] + C_flag; \
-	{C_flag_new, result} = A + src + C_flag; \
+	{C_flag_new, A_new} = A + src + C_flag; \
 end
 
 `define SUB(src) \
@@ -172,7 +174,7 @@ begin \
 	A_ld = 1'b1; \
 	Z_flag_new = (A_new == 8'h0);\
 	N_flag_new = 1'b1; \
-	H_flag_new = A[3:0] < src[3:0] \
+	H_flag_new = A[3:0] < src[3:0]; \
 	C_flag_new = A < src; \
 	F_ld = 1'b1; \
 end
@@ -225,7 +227,7 @@ end
 begin \
 	Z_flag_new = (A == src);\
 	N_flag_new = 1'b1; \
-	H_flag_new = A[3:0] < src[3:0] \
+	H_flag_new = A[3:0] < src[3:0]; \
 	C_flag_new = A < src; \
 	F_ld = 1'b1; \
 end
@@ -257,7 +259,7 @@ begin \
 	``base``_ld = 1'b1; \
 end
 
-// 16 bit ALU operations
+// 16 bit ALU operations ////////////////////////////////////////
 
 `define ADD16(dst, src) \
 begin \
@@ -265,7 +267,7 @@ begin \
 	``dst``_ld = 1'b1; \
 	N_flag_new = 1'b0; \
 	{H_flag_new, tmp} = dst[11:0] + src[11:0]; \
-	{C_flag_new, result} = dst + src; \
+	{C_flag_new, ``dst``_new} = dst + src; \
 	F_ld = 1'b1; \
 end
 
@@ -276,7 +278,7 @@ begin \
 	Z_flag_new = 1'b0; \
 	N_flag_new = 1'b0; \
 	{H_flag_new, tmp} = SP[11:0] + src[11:0]; \
-	{C_flag_new, result} = SP + src; \
+	{C_flag_new, ``dst``_new} = SP + src; \
 	F_ld = 1'b1; \
 end
 
@@ -291,6 +293,60 @@ begin \
 	``src``_new = src - 1'b1; \
 	``src``_ld = 1'b1; \
 end
+
+`define RL(src) \
+begin \
+	``src``_new = {src[6:0],C_flag}; \
+	``src``_ld = 1'b1; \
+	Z_flag_new = 1'b0; \
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b0; \
+	C_flag_new = src[7]; \
+	F_ld = 1'b1; \
+end
+
+`define RLC(src) \
+begin \
+	``src``_new = {src[6:0],src[7]}; \
+	``src``_ld = 1'b1; \
+	Z_flag_new = 1'b0; \
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b0; \
+	C_flag_new = src[7]; \
+	F_ld = 1'b1; \
+end
+
+`define RR(src) \
+begin \
+	``src``_new = {C_flag,src[7:1]}; \
+	``src``_ld = 1'b1; \
+	Z_flag_new = 1'b0; \
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b0; \
+	C_flag_new = src[0]; \
+	F_ld = 1'b1; \
+end
+
+`define RRC(src) \
+begin \
+	``src``_new = {src[0],src[7:1]}; \
+	``src``_ld = 1'b1; \
+	Z_flag_new = 1'b0; \
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b0; \
+	C_flag_new = src[0]; \
+	F_ld = 1'b1; \
+end
+
+`define CPL \
+begin \
+	A_new = ~A; \
+	A_ld = 1'b1; \
+	N_flag_new = 1'b1; \
+	H_flag_new = 1'b1; \
+	F_ld = 1'b1; \
+end
+
 
 // checks the bit of the source signal at the specified index
 `define BIT(bit_index,src) \
@@ -1962,7 +2018,7 @@ begin
 		WAIT_LD_26_0     : Next_state = LD_26_1;
 		JR_28_0          : Next_state = WAIT_JR_28_0;
 		WAIT_JR_28_0     : Next_state = JR_28_1;
-		JR_28_1          : Next_state = WAIT_JR_28_1;
+		JR_28_1          : begin if (Z_flag == 1'b1) Next_state = WAIT_JR_28_1; else Next_state = FETCH; end
 		WAIT_JR_28_1     : Next_state = JR_28_2;
 		ADD_29_0         : Next_state = WAIT_ADD_29_0;
 		WAIT_ADD_29_0    : Next_state = ADD_29_1;
@@ -1974,7 +2030,7 @@ begin
 		WAIT_LD_2E_0     : Next_state = LD_2E_1;
 		JR_30_0          : Next_state = WAIT_JR_30_0;
 		WAIT_JR_30_0     : Next_state = JR_30_1;
-		JR_30_1          : Next_state = WAIT_JR_30_1;
+		JR_30_1          : begin if (C_flag == 1'b0) Next_state = WAIT_JR_30_1; else Next_state = FETCH; end
 		WAIT_JR_30_1     : Next_state = JR_30_2;
 		LD_31_0          : Next_state = WAIT_LD_31_0;
 		WAIT_LD_31_0     : Next_state = LD_31_1;
@@ -1998,7 +2054,7 @@ begin
 		WAIT_LD_36_1     : Next_state = LD_36_2;
 		JR_38_0          : Next_state = WAIT_JR_38_0;
 		WAIT_JR_38_0     : Next_state = JR_38_1;
-		JR_38_1          : Next_state = WAIT_JR_38_1;
+		JR_38_1          : begin if (C_flag == 1'b1) Next_state = WAIT_JR_28_1; else Next_state = FETCH; end
 		WAIT_JR_38_1     : Next_state = JR_38_2;
 		ADD_39_0         : Next_state = WAIT_ADD_39_0;
 		WAIT_ADD_39_0    : Next_state = ADD_39_1;
@@ -2485,274 +2541,274 @@ begin
 							set_prefixed_op_flag = 1'b1;
 						end
 /*      NOP      */     NOP_00           : ;
-/*   LD BC d16   */     LD_01_0          : `get_low_byte(OP16)      
-                        LD_01_1          : `get_high_byte(OP16)     
-                        LD_01_2          : `writeRegFromReg(BC,OP16)
-/*   LD (BC) A   */     LD_02_0          : `get_one_byte(OP8)
-                        LD_02_1          : `writeMemFromReg(BC,OP8)
+/*   LD BC d16   */     LD_01_0          : `getLowByte(OP16)      
+                        LD_01_1          : `getHighByte(OP16)     
+                        LD_01_2          : `loadRegFromReg(BC,OP16)
+/*   LD (BC) A   */     LD_02_0          : `writeToMemAtRegAddr(BC,A)
+                        LD_02_1          : ;
 /*     INC BC    */     INC_03_0         : `INC16(BC)
                         INC_03_1         : ;
 /*     INC B     */     INC_04           : `INC(B)
 /*     DEC B     */     DEC_05           : `DEC(B)
-/*    LD B d8    */     LD_06_0          : `get_one_byte(OP8)
-                        LD_06_1          : `writeRegFromReg(B,OP8)
-/*      RLCA     */     RLCA_07          : ;
-/*  LD (a16) SP  */     LD_08_0          : ;
-                        LD_08_1          : ;
-                        LD_08_2          : ;
-                        LD_08_3          : ;
+/*    LD B d8    */     LD_06_0          : `getOneByte(OP8)     
+                        LD_06_1          : `loadRegFromReg(B,OP8)
+/*      RLCA     */     RLCA_07          : `RLC(A)
+/*  LD (a16) SP  */     LD_08_0          : `getLowByte(OP16) 
+                        LD_08_1          : `getHighByte(OP16)
+                        LD_08_2          : `writeToMemAtRegAddr(OP16, SP[7:0])
+                        LD_08_3          : `writeToMemAtRegAddr(OP16+1'b1, SP[15:8])
                         LD_08_4          : ;
-/*   ADD HL BC   */     ADD_09_0         : ;
+/*   ADD HL BC   */     ADD_09_0         : `ADD16(HL,BC)
                         ADD_09_1         : ;
-/*   LD A (BC)   */     LD_0A_0          : ;
+/*   LD A (BC)   */     LD_0A_0          : `readMemFromRegAddr(A,BC)
                         LD_0A_1          : ;
-/*     DEC BC    */     DEC_0B_0         : ;
+/*     DEC BC    */     DEC_0B_0         : `DEC16(BC)
                         DEC_0B_1         : ;
-/*     INC C     */     INC_0C           : ;
-/*     DEC C     */     DEC_0D           : ;
-/*    LD C d8    */     LD_0E_0          : ;
-                        LD_0E_1          : ;
-/*      RRCA     */     RRCA_0F          : ;
-/*      STOP     */     STOP_10          : ;
-/*   LD DE d16   */     LD_11_0          : ;
-                        LD_11_1          : ;
-                        LD_11_2          : ;
-/*   LD (DE) A   */     LD_12_0          : ;
+/*     INC C     */     INC_0C           : `INC(C)
+/*     DEC C     */     DEC_0D           : `DEC(C)
+/*    LD C d8    */     LD_0E_0          : `getOneByte(OP8)     
+                        LD_0E_1          : `loadRegFromReg(C,OP8)
+/*      RRCA     */     RRCA_0F          : `RRC(A)
+/*      STOP     */     STOP_10          : ; // TODO
+/*   LD DE d16   */     LD_11_0          : `getLowByte(OP16)      
+                        LD_11_1          : `getHighByte(OP16)     
+                        LD_11_2          : `loadRegFromReg(DE,OP16)
+/*   LD (DE) A   */     LD_12_0          : `writeToMemAtRegAddr(DE, A)
                         LD_12_1          : ;
-/*     INC DE    */     INC_13_0         : ;
+/*     INC DE    */     INC_13_0         : `INC16(DE)
                         INC_13_1         : ;
-/*     INC D     */     INC_14           : ;
-/*     DEC D     */     DEC_15           : ;
-/*    LD D d8    */     LD_16_0          : ;
-                        LD_16_1          : ;
-/*      RLA      */     RLA_17           : ;
-/*     JR r8     */     JR_18_0          : ;
-                        JR_18_1          : ;
+/*     INC D     */     INC_14           : `INC(D)
+/*     DEC D     */     DEC_15           : `DEC(D)
+/*    LD D d8    */     LD_16_0          : `getOneByte(OP8)     
+                        LD_16_1          : `loadRegFromReg(D,OP8)
+/*      RLA      */     RLA_17           : `RL(A)
+/*     JR r8     */     JR_18_0          : `getOneByte(OP8)
+                        JR_18_1          : `ADD_NO_FLAGS(PC,OP8)
                         JR_18_2          : ;
-/*   ADD HL DE   */     ADD_19_0         : ;
+/*   ADD HL DE   */     ADD_19_0         : `ADD16(HL,DE)
                         ADD_19_1         : ;
-/*   LD A (DE)   */     LD_1A_0          : ;
+/*   LD A (DE)   */     LD_1A_0          : `readMemFromRegAddr(A,DE)
                         LD_1A_1          : ;
-/*     DEC DE    */     DEC_1B_0         : ;
+/*     DEC DE    */     DEC_1B_0         : `DEC16(DE)
                         DEC_1B_1         : ;
-/*     INC E     */     INC_1C           : ;
-/*     DEC E     */     DEC_1D           : ;
-/*    LD E d8    */     LD_1E_0          : ;
-                        LD_1E_1          : ;
-/*      RRA      */     RRA_1F           : ;
-/*    JR NZ r8   */     JR_20_0          : `get_one_byte(OP8)
-                        JR_20_1          : ;
+/*     INC E     */     INC_1C           : `INC(E)
+/*     DEC E     */     DEC_1D           : `DEC(E)
+/*    LD E d8    */     LD_1E_0          : `getOneByte(OP8)     
+                        LD_1E_1          : `loadRegFromReg(E,OP8)
+/*      RRA      */     RRA_1F           : `RR(A)
+/*    JR NZ r8   */     JR_20_0          : `getOneByte(OP8)            
+                        JR_20_1          : ;                             
                         JR_20_2          : `ADD_NO_FLAGS(PC,`SEXT16(OP8))
-/*   LD HL d16   */     LD_21_0          : `get_low_byte(OP16)      
-                        LD_21_1          : `get_high_byte(OP16)     
-                        LD_21_2          : `writeRegFromReg(HL,OP16)
-/*   LD (HL+) A  */     LD_22_0          : ;
-                        LD_22_1          : ;
-/*     INC HL    */     INC_23_0         : ;
+/*   LD HL d16   */     LD_21_0          : `getLowByte(OP16)      
+                        LD_21_1          : `getHighByte(OP16)     
+                        LD_21_2          : `loadRegFromReg(HL,OP16)
+/*   LD (HL+) A  */     LD_22_0          : `writeToMemAtRegAddr(HL,A)
+                        LD_22_1          : `INC16(HL)            
+/*     INC HL    */     INC_23_0         : `INC16(HL)
                         INC_23_1         : ;
-/*     INC H     */     INC_24           : ;
-/*     DEC H     */     DEC_25           : ;
-/*    LD H d8    */     LD_26_0          : ;
-                        LD_26_1          : ;
-/*      DAA      */     DAA_27           : ;
-/*    JR Z r8    */     JR_28_0          : ;
-                        JR_28_1          : ;
-                        JR_28_2          : ;
-/*   ADD HL HL   */     ADD_29_0         : ;
+/*     INC H     */     INC_24           : `INC(H)
+/*     DEC H     */     DEC_25           : `DEC(H)
+/*    LD H d8    */     LD_26_0          : `getOneByte(OP8)     
+                        LD_26_1          : `loadRegFromReg(H,OP8)
+/*      DAA      */     DAA_27           : ; // TODO
+/*    JR Z r8    */     JR_28_0          : `getOneByte(OP8)            
+                        JR_28_1          : ;                             
+                        JR_28_2          : `ADD_NO_FLAGS(PC,`SEXT16(OP8))
+/*   ADD HL HL   */     ADD_29_0         : `ADD16(HL,HL)
                         ADD_29_1         : ;
-/*   LD A (HL+)  */     LD_2A_0          : ;
-                        LD_2A_1          : ;
-/*     DEC HL    */     DEC_2B_0         : ;
+/*   LD A (HL+)  */     LD_2A_0          : `readMemFromRegAddr(A,HL)
+                        LD_2A_1          : `INC16(HL)
+/*     DEC HL    */     DEC_2B_0         : `DEC16(HL)
                         DEC_2B_1         : ;
-/*     INC L     */     INC_2C           : ;
-/*     DEC L     */     DEC_2D           : ;
-/*    LD L d8    */     LD_2E_0          : ;
-                        LD_2E_1          : ;
-/*      CPL      */     CPL_2F           : ;
-/*    JR NC r8   */     JR_30_0          : ;
-                        JR_30_1          : ;
-                        JR_30_2          : ;
-/*   LD SP d16   */     LD_31_0          : `get_low_byte(OP16)
-                        LD_31_1          : `get_high_byte(OP16)
-                        LD_31_2          : `writeRegFromReg(SP,OP16)
-/*   LD (HL-) A  */     LD_32_0          : `writeMemFromReg(HL,A)
-                        LD_32_1          : `DEC16(HL)
-/*     INC SP    */     INC_33_0         : ;
+/*     INC L     */     INC_2C           : `INC(L)
+/*     DEC L     */     DEC_2D           : `DEC(L)
+/*    LD L d8    */     LD_2E_0          : `getOneByte(OP8)     
+                        LD_2E_1          : `loadRegFromReg(L,OP8)
+/*      CPL      */     CPL_2F           : `CPL
+/*    JR NC r8   */     JR_30_0          : `getOneByte(OP8)            
+                        JR_30_1          : ;                             
+                        JR_30_2          : `ADD_NO_FLAGS(PC,`SEXT16(OP8))
+/*   LD SP d16   */     LD_31_0          : `getLowByte(OP16)
+                        LD_31_1          : `getHighByte(OP16)
+                        LD_31_2          : `loadRegFromReg(SP,OP16)
+/*   LD (HL-) A  */     LD_32_0          : `writeToMemAtRegAddr(HL,A)
+                        LD_32_1          : `DEC16(HL)            
+/*     INC SP    */     INC_33_0         : `INC16(SP)
                         INC_33_1         : ;
-/*    INC (HL)   */     INC_34_0         : ;
-                        INC_34_1         : ;
-                        INC_34_2         : ;
-/*    DEC (HL)   */     DEC_35_0         : ;
-                        DEC_35_1         : ;
-                        DEC_35_2         : ;
-/*   LD (HL) d8  */     LD_36_0          : ;
-                        LD_36_1          : ;
+/*    INC (HL)   */     INC_34_0         : `readMemFromRegAddr(OP8,HL) 
+                        INC_34_1         : `INC(OP8)               
+                        INC_34_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    DEC (HL)   */     DEC_35_0         : `readMemFromRegAddr(OP8,HL) 
+                        DEC_35_1         : `DEC(OP8)               
+                        DEC_35_2         : `writeToMemAtRegAddr(HL,OP8)
+/*   LD (HL) d8  */     LD_36_0          : `getOneByte(OP8)
+                        LD_36_1          : `writeToMemAtRegAddr(HL,OP8)
                         LD_36_2          : ;
-/*      SCF      */     SCF_37           : ;
-/*    JR C r8    */     JR_38_0          : ;
-                        JR_38_1          : ;
-                        JR_38_2          : ;
-/*   ADD HL SP   */     ADD_39_0         : ;
+/*      SCF      */     SCF_37           : ; // TODO
+/*    JR C r8    */     JR_38_0          : `getOneByte(OP8)            
+                        JR_38_1          : ;                             
+                        JR_38_2          : `ADD_NO_FLAGS(PC,`SEXT16(OP8))
+/*   ADD HL SP   */     ADD_39_0         : `ADD16(HL,SP)
                         ADD_39_1         : ;
-/*   LD A (HL-)  */     LD_3A_0          : ;
-                        LD_3A_1          : ;
-/*     DEC SP    */     DEC_3B_0         : ;
+/*   LD A (HL-)  */     LD_3A_0          : `readMemFromRegAddr(A,HL)
+                        LD_3A_1          : `DEC16(HL)
+/*     DEC SP    */     DEC_3B_0         : `DEC16(SP)
                         DEC_3B_1         : ;
-/*     INC A     */     INC_3C           : ;
-/*     DEC A     */     DEC_3D           : ;
-/*    LD A d8    */     LD_3E_0          : ;
+/*     INC A     */     INC_3C           : `INC(A)
+/*     DEC A     */     DEC_3D           : `DEC(A)
+/*    LD A d8    */     LD_3E_0          : `getOneByte(A)
                         LD_3E_1          : ;
-/*      CCF      */     CCF_3F           : ;
-/*     LD B B    */     LD_40            : ;
-/*     LD B C    */     LD_41            : ;
-/*     LD B D    */     LD_42            : ;
-/*     LD B E    */     LD_43            : ;
-/*     LD B H    */     LD_44            : ;
-/*     LD B L    */     LD_45            : ;
-/*   LD B (HL)   */     LD_46_0          : ;
-                        LD_46_1          : ;
-/*     LD B A    */     LD_47            : ;
-/*     LD C B    */     LD_48            : ;
-/*     LD C C    */     LD_49            : ;
-/*     LD C D    */     LD_4A            : ;
-/*     LD C E    */     LD_4B            : ;
-/*     LD C H    */     LD_4C            : ;
-/*     LD C L    */     LD_4D            : ;
-/*   LD C (HL)   */     LD_4E_0          : ;
-                        LD_4E_1          : ;
-/*     LD C A    */     LD_4F            : ;
-/*     LD D B    */     LD_50            : ;
-/*     LD D C    */     LD_51            : ;
-/*     LD D D    */     LD_52            : ;
-/*     LD D E    */     LD_53            : ;
-/*     LD D H    */     LD_54            : ;
-/*     LD D L    */     LD_55            : ;
-/*   LD D (HL)   */     LD_56_0          : ;
-                        LD_56_1          : ;
-/*     LD D A    */     LD_57            : ;
-/*     LD E B    */     LD_58            : ;
-/*     LD E C    */     LD_59            : ;
-/*     LD E D    */     LD_5A            : ;
-/*     LD E E    */     LD_5B            : ;
-/*     LD E H    */     LD_5C            : ;
-/*     LD E L    */     LD_5D            : ;
-/*   LD E (HL)   */     LD_5E_0          : ;
-                        LD_5E_1          : ;
-/*     LD E A    */     LD_5F            : ;
-/*     LD H B    */     LD_60            : ;
-/*     LD H C    */     LD_61            : ;
-/*     LD H D    */     LD_62            : ;
-/*     LD H E    */     LD_63            : ;
-/*     LD H H    */     LD_64            : ;
-/*     LD H L    */     LD_65            : ;
-/*   LD H (HL)   */     LD_66_0          : ;
-                        LD_66_1          : ;
-/*     LD H A    */     LD_67            : ;
-/*     LD L B    */     LD_68            : ;
-/*     LD L C    */     LD_69            : ;
-/*     LD L D    */     LD_6A            : ;
-/*     LD L E    */     LD_6B            : ;
-/*     LD L H    */     LD_6C            : ;
-/*     LD L L    */     LD_6D            : ;
-/*   LD L (HL)   */     LD_6E_0          : ;
-                        LD_6E_1          : ;
-/*     LD L A    */     LD_6F            : ;
-/*   LD (HL) B   */     LD_70_0          : ;
+/*      CCF      */     CCF_3F           : ; // TODO
+/*     LD B B    */     LD_40            : `loadRegFromReg(B,B) 
+/*     LD B C    */     LD_41            : `loadRegFromReg(B,C) 
+/*     LD B D    */     LD_42            : `loadRegFromReg(B,D) 
+/*     LD B E    */     LD_43            : `loadRegFromReg(B,E) 
+/*     LD B H    */     LD_44            : `loadRegFromReg(B,H) 
+/*     LD B L    */     LD_45            : `loadRegFromReg(B,L) 
+/*   LD B (HL)   */     LD_46_0          : `readMemFromRegAddr( B,HL)
+                        LD_46_1          : ;                     
+/*     LD B A    */     LD_47            : `loadRegFromReg(B,A) 
+/*     LD C B    */     LD_48            : `loadRegFromReg(C,B) 
+/*     LD C C    */     LD_49            : `loadRegFromReg(C,C) 
+/*     LD C D    */     LD_4A            : `loadRegFromReg(C,D) 
+/*     LD C E    */     LD_4B            : `loadRegFromReg(C,E) 
+/*     LD C H    */     LD_4C            : `loadRegFromReg(C,H) 
+/*     LD C L    */     LD_4D            : `loadRegFromReg(C,L) 
+/*   LD C (HL)   */     LD_4E_0          : `readMemFromRegAddr( C,HL)
+                        LD_4E_1          : ;                    
+/*     LD C A    */     LD_4F            : `loadRegFromReg(C,A) 
+/*     LD D B    */     LD_50            : `loadRegFromReg(D,B) 
+/*     LD D C    */     LD_51            : `loadRegFromReg(D,C) 
+/*     LD D D    */     LD_52            : `loadRegFromReg(D,D) 
+/*     LD D E    */     LD_53            : `loadRegFromReg(D,E) 
+/*     LD D H    */     LD_54            : `loadRegFromReg(D,H) 
+/*     LD D L    */     LD_55            : `loadRegFromReg(D,L) 
+/*   LD D (HL)   */     LD_56_0          : `readMemFromRegAddr( D,HL)
+                        LD_56_1          : ;                    
+/*     LD D A    */     LD_57            : `loadRegFromReg(D,A) 
+/*     LD E B    */     LD_58            : `loadRegFromReg(E,B) 
+/*     LD E C    */     LD_59            : `loadRegFromReg(E,C) 
+/*     LD E D    */     LD_5A            : `loadRegFromReg(E,D) 
+/*     LD E E    */     LD_5B            : `loadRegFromReg(E,E) 
+/*     LD E H    */     LD_5C            : `loadRegFromReg(E,H) 
+/*     LD E L    */     LD_5D            : `loadRegFromReg(E,L) 
+/*   LD E (HL)   */     LD_5E_0          : `readMemFromRegAddr( E,HL)
+                        LD_5E_1          : ;                 
+/*     LD E A    */     LD_5F            : `loadRegFromReg(E,A) 
+/*     LD H B    */     LD_60            : `loadRegFromReg(H,B) 
+/*     LD H C    */     LD_61            : `loadRegFromReg(H,C) 
+/*     LD H D    */     LD_62            : `loadRegFromReg(H,D) 
+/*     LD H E    */     LD_63            : `loadRegFromReg(H,E) 
+/*     LD H H    */     LD_64            : `loadRegFromReg(H,H) 
+/*     LD H L    */     LD_65            : `loadRegFromReg(H,L) 
+/*   LD H (HL)   */     LD_66_0          : `readMemFromRegAddr( H,HL)
+                        LD_66_1          : ;                  
+/*     LD H A    */     LD_67            : `loadRegFromReg(H,A) 
+/*     LD L B    */     LD_68            : `loadRegFromReg(L,B) 
+/*     LD L C    */     LD_69            : `loadRegFromReg(L,C) 
+/*     LD L D    */     LD_6A            : `loadRegFromReg(L,D) 
+/*     LD L E    */     LD_6B            : `loadRegFromReg(L,E) 
+/*     LD L H    */     LD_6C            : `loadRegFromReg(L,H) 
+/*     LD L L    */     LD_6D            : `loadRegFromReg(L,L) 
+/*   LD L (HL)   */     LD_6E_0          : `readMemFromRegAddr( L,HL)
+                        LD_6E_1          : ;                     
+/*     LD L A    */     LD_6F            : `loadRegFromReg(L,A) 
+/*   LD (HL) B   */     LD_70_0          : `writeToMemAtRegAddr(HL,B)
                         LD_70_1          : ;
-/*   LD (HL) C   */     LD_71_0          : ;
+/*   LD (HL) C   */     LD_71_0          : `writeToMemAtRegAddr(HL,C)
                         LD_71_1          : ;
-/*   LD (HL) D   */     LD_72_0          : ;
+/*   LD (HL) D   */     LD_72_0          : `writeToMemAtRegAddr(HL,D)
                         LD_72_1          : ;
-/*   LD (HL) E   */     LD_73_0          : ;
+/*   LD (HL) E   */     LD_73_0          : `writeToMemAtRegAddr(HL,E)
                         LD_73_1          : ;
-/*   LD (HL) H   */     LD_74_0          : ;
+/*   LD (HL) H   */     LD_74_0          : `writeToMemAtRegAddr(HL,H)
                         LD_74_1          : ;
-/*   LD (HL) L   */     LD_75_0          : ;
+/*   LD (HL) L   */     LD_75_0          : `writeToMemAtRegAddr(HL,L)
                         LD_75_1          : ;
-/*      HALT     */     HALT_76          : ;
-/*   LD (HL) A   */     LD_77_0          : ;
+/*      HALT     */     HALT_76          : ; // TODO
+/*   LD (HL) A   */     LD_77_0          : `writeToMemAtRegAddr(HL,A)
                         LD_77_1          : ;
-/*     LD A B    */     LD_78            : ;
-/*     LD A C    */     LD_79            : ;
-/*     LD A D    */     LD_7A            : ;
-/*     LD A E    */     LD_7B            : ;
-/*     LD A H    */     LD_7C            : ;
-/*     LD A L    */     LD_7D            : ;
-/*   LD A (HL)   */     LD_7E_0          : ;
-                        LD_7E_1          : ;
-/*     LD A A    */     LD_7F            : ;
-/*    ADD A B    */     ADD_80           : ;
-/*    ADD A C    */     ADD_81           : ;
-/*    ADD A D    */     ADD_82           : ;
-/*    ADD A E    */     ADD_83           : ;
-/*    ADD A H    */     ADD_84           : ;
-/*    ADD A L    */     ADD_85           : ;
-/*   ADD A (HL)  */     ADD_86_0         : ;
-                        ADD_86_1         : ;
-/*    ADD A A    */     ADD_87           : ;
-/*    ADC A B    */     ADC_88           : ;
-/*    ADC A C    */     ADC_89           : ;
-/*    ADC A D    */     ADC_8A           : ;
-/*    ADC A E    */     ADC_8B           : ;
-/*    ADC A H    */     ADC_8C           : ;
-/*    ADC A L    */     ADC_8D           : ;
-/*   ADC A (HL)  */     ADC_8E_0         : ;
-                        ADC_8E_1         : ;
-/*    ADC A A    */     ADC_8F           : ;
-/*     SUB B     */     SUB_90           : ;
-/*     SUB C     */     SUB_91           : ;
-/*     SUB D     */     SUB_92           : ;
-/*     SUB E     */     SUB_93           : ;
-/*     SUB H     */     SUB_94           : ;
-/*     SUB L     */     SUB_95           : ;
-/*    SUB (HL)   */     SUB_96_0         : ;
-                        SUB_96_1         : ;
-/*     SUB A     */     SUB_97           : ;
-/*    SBC A B    */     SBC_98           : ;
-/*    SBC A C    */     SBC_99           : ;
-/*    SBC A D    */     SBC_9A           : ;
-/*    SBC A E    */     SBC_9B           : ;
-/*    SBC A H    */     SBC_9C           : ;
-/*    SBC A L    */     SBC_9D           : ;
-/*   SBC A (HL)  */     SBC_9E_0         : ;
-                        SBC_9E_1         : ;
-/*    SBC A A    */     SBC_9F           : ;
-/*     AND B     */     AND_A0           : ;
-/*     AND C     */     AND_A1           : ;
-/*     AND D     */     AND_A2           : ;
-/*     AND E     */     AND_A3           : ;
-/*     AND H     */     AND_A4           : ;
-/*     AND L     */     AND_A5           : ;
-/*    AND (HL)   */     AND_A6_0         : ;
-                        AND_A6_1         : ;
-/*     AND A     */     AND_A7           : ;
+/*     LD A B    */     LD_78            : `loadRegFromReg(A,B) 
+/*     LD A C    */     LD_79            : `loadRegFromReg(A,C) 
+/*     LD A D    */     LD_7A            : `loadRegFromReg(A,D) 
+/*     LD A E    */     LD_7B            : `loadRegFromReg(A,E) 
+/*     LD A H    */     LD_7C            : `loadRegFromReg(A,H) 
+/*     LD A L    */     LD_7D            : `loadRegFromReg(A,L) 
+/*   LD A (HL)   */     LD_7E_0          : `readMemFromRegAddr( A,HL)
+                        LD_7E_1          : ;                    
+/*     LD A A    */     LD_7F            : `loadRegFromReg(A,A) 
+/*    ADD A B    */     ADD_80           : `ADD(B)                
+/*    ADD A C    */     ADD_81           : `ADD(C)                
+/*    ADD A D    */     ADD_82           : `ADD(D)                
+/*    ADD A E    */     ADD_83           : `ADD(E)                
+/*    ADD A H    */     ADD_84           : `ADD(H)                
+/*    ADD A L    */     ADD_85           : `ADD(L)                
+/*   ADD A (HL)  */     ADD_86_0         : `readMemFromRegAddr(OP8,HL)
+                        ADD_86_1         : `ADD(OP8)              
+/*    ADD A A    */     ADD_87           : `ADD(A)                
+/*    ADC A B    */     ADC_88           : `ADC(B)                
+/*    ADC A C    */     ADC_89           : `ADC(C)                
+/*    ADC A D    */     ADC_8A           : `ADC(D)                
+/*    ADC A E    */     ADC_8B           : `ADC(E)                
+/*    ADC A H    */     ADC_8C           : `ADC(H)                
+/*    ADC A L    */     ADC_8D           : `ADC(L)                
+/*   ADC A (HL)  */     ADC_8E_0         : `readMemFromRegAddr(OP8,HL)
+                        ADC_8E_1         : `ADC(OP8)              
+/*    ADC A A    */     ADC_8F           : `ADC(A)                
+/*     SUB B     */     SUB_90           : `SUB(B)                
+/*     SUB C     */     SUB_91           : `SUB(C)                
+/*     SUB D     */     SUB_92           : `SUB(D)                
+/*     SUB E     */     SUB_93           : `SUB(E)                
+/*     SUB H     */     SUB_94           : `SUB(H)                
+/*     SUB L     */     SUB_95           : `SUB(L)                
+/*    SUB (HL)   */     SUB_96_0         : `readMemFromRegAddr(OP8,HL)
+                        SUB_96_1         : `SUB(OP8)              
+/*     SUB A     */     SUB_97           : `SUB(A)                
+/*    SBC A B    */     SBC_98           : `SBC(B)                
+/*    SBC A C    */     SBC_99           : `SBC(C)                
+/*    SBC A D    */     SBC_9A           : `SBC(D)                
+/*    SBC A E    */     SBC_9B           : `SBC(E)                
+/*    SBC A H    */     SBC_9C           : `SBC(H)                
+/*    SBC A L    */     SBC_9D           : `SBC(L)                
+/*   SBC A (HL)  */     SBC_9E_0         : `readMemFromRegAddr(OP8,HL)
+                        SBC_9E_1         : `SBC(OP8)              
+/*    SBC A A    */     SBC_9F           : `SBC(A)                
+/*     AND B     */     AND_A0           : `AND(B)                
+/*     AND C     */     AND_A1           : `AND(C)                
+/*     AND D     */     AND_A2           : `AND(D)                
+/*     AND E     */     AND_A3           : `AND(E)                
+/*     AND H     */     AND_A4           : `AND(H)                
+/*     AND L     */     AND_A5           : `AND(L)                
+/*    AND (HL)   */     AND_A6_0         : `readMemFromRegAddr(OP8,HL)
+                        AND_A6_1         : `AND(OP8)              
+/*     AND A     */     AND_A7           : `AND(A)                
 /*     XOR B     */     XOR_A8           : `XOR(B)
 /*     XOR C     */     XOR_A9           : `XOR(C)
 /*     XOR D     */     XOR_AA           : `XOR(D)
 /*     XOR E     */     XOR_AB           : `XOR(E)
 /*     XOR H     */     XOR_AC           : `XOR(H)
 /*     XOR L     */     XOR_AD           : `XOR(L)
-/*    XOR (HL)   */     XOR_AE_0         : `get_one_byte(OP8)
+/*    XOR (HL)   */     XOR_AE_0         : `getOneByte(OP8)
                         XOR_AE_1         : `XOR(OP8)
 /*     XOR A     */     XOR_AF           : `XOR(A)
-/*      OR B     */     OR_B0            : ;
-/*      OR C     */     OR_B1            : ;
-/*      OR D     */     OR_B2            : ;
-/*      OR E     */     OR_B3            : ;
-/*      OR H     */     OR_B4            : ;
-/*      OR L     */     OR_B5            : ;
-/*    OR (HL)    */     OR_B6_0          : ;
-                        OR_B6_1          : ;
-/*      OR A     */     OR_B7            : ;
-/*      CP B     */     CP_B8            : ;
-/*      CP C     */     CP_B9            : ;
-/*      CP D     */     CP_BA            : ;
-/*      CP E     */     CP_BB            : ;
-/*      CP H     */     CP_BC            : ;
-/*      CP L     */     CP_BD            : ;
-/*    CP (HL)    */     CP_BE_0          : ;
-                        CP_BE_1          : ;
-/*      CP A     */     CP_BF            : ;
+/*      OR B     */     OR_B0            : `OR(B)                
+/*      OR C     */     OR_B1            : `OR(C)                
+/*      OR D     */     OR_B2            : `OR(D)                
+/*      OR E     */     OR_B3            : `OR(E)                
+/*      OR H     */     OR_B4            : `OR(H)                
+/*      OR L     */     OR_B5            : `OR(L)                
+/*    OR (HL)    */     OR_B6_0          : `readMemFromRegAddr(OP8,HL)
+                        OR_B6_1          : `OR(OP8)              
+/*      OR A     */     OR_B7            : `OR(A)                
+/*      CP B     */     CP_B8            : `CP(B)                
+/*      CP C     */     CP_B9            : `CP(C)                
+/*      CP D     */     CP_BA            : `CP(D)                
+/*      CP E     */     CP_BB            : `CP(E)                
+/*      CP H     */     CP_BC            : `CP(H)                
+/*      CP L     */     CP_BD            : `CP(L)                
+/*    CP (HL)    */     CP_BE_0          : `readMemFromRegAddr(OP8,HL)
+                        CP_BE_1          : `CP(OP8)              
+/*      CP A     */     CP_BF            : `CP(A)                
 /*     RET NZ    */     RET_C0_0         : ;
                         RET_C0_1         : ;
                         RET_C0_2         : ;
@@ -3035,7 +3091,7 @@ begin
 /*    BIT 0 E    */     BIT_43           : `BIT(0,E)         
 /*    BIT 0 H    */     BIT_44           : `BIT(0,H)         
 /*    BIT 0 L    */     BIT_45           : `BIT(0,L)         
-/*   BIT 0 (HL)  */     BIT_46_0         : `get_one_byte(OP8)
+/*   BIT 0 (HL)  */     BIT_46_0         : `getOneByte(OP8)
                         BIT_46_1         : `BIT(0,OP8)       
 /*    BIT 0 A    */     BIT_47           : `BIT(0,A)         
 /*    BIT 1 B    */     BIT_48           : `BIT(1,B)         
@@ -3044,7 +3100,7 @@ begin
 /*    BIT 1 E    */     BIT_4B           : `BIT(1,E)         
 /*    BIT 1 H    */     BIT_4C           : `BIT(1,H)         
 /*    BIT 1 L    */     BIT_4D           : `BIT(1,L)         
-/*   BIT 1 (HL)  */     BIT_4E_0         : `get_one_byte(OP8)
+/*   BIT 1 (HL)  */     BIT_4E_0         : `getOneByte(OP8)
                         BIT_4E_1         : `BIT(1,OP8)       
 /*    BIT 1 A    */     BIT_4F           : `BIT(1,A)         
 /*    BIT 2 B    */     BIT_50           : `BIT(2,B)         
@@ -3053,7 +3109,7 @@ begin
 /*    BIT 2 E    */     BIT_53           : `BIT(2,E)         
 /*    BIT 2 H    */     BIT_54           : `BIT(2,H)         
 /*    BIT 2 L    */     BIT_55           : `BIT(2,L)         
-/*   BIT 2 (HL)  */     BIT_56_0         : `get_one_byte(OP8)
+/*   BIT 2 (HL)  */     BIT_56_0         : `getOneByte(OP8)
                         BIT_56_1         : `BIT(2,OP8)       
 /*    BIT 2 A    */     BIT_57           : `BIT(2,A)         
 /*    BIT 3 B    */     BIT_58           : `BIT(3,B)         
@@ -3062,7 +3118,7 @@ begin
 /*    BIT 3 E    */     BIT_5B           : `BIT(3,E)         
 /*    BIT 3 H    */     BIT_5C           : `BIT(3,H)         
 /*    BIT 3 L    */     BIT_5D           : `BIT(3,L)         
-/*   BIT 3 (HL)  */     BIT_5E_0         : `get_one_byte(OP8)
+/*   BIT 3 (HL)  */     BIT_5E_0         : `getOneByte(OP8)
                         BIT_5E_1         : `BIT(3,OP8)       
 /*    BIT 3 A    */     BIT_5F           : `BIT(3,A)         
 /*    BIT 4 B    */     BIT_60           : `BIT(4,B)         
@@ -3071,7 +3127,7 @@ begin
 /*    BIT 4 E    */     BIT_63           : `BIT(4,E)         
 /*    BIT 4 H    */     BIT_64           : `BIT(4,H)         
 /*    BIT 4 L    */     BIT_65           : `BIT(4,L)         
-/*   BIT 4 (HL)  */     BIT_66_0         : `get_one_byte(OP8)
+/*   BIT 4 (HL)  */     BIT_66_0         : `getOneByte(OP8)
                         BIT_66_1         : `BIT(4,OP8)       
 /*    BIT 4 A    */     BIT_67           : `BIT(4,A)         
 /*    BIT 5 B    */     BIT_68           : `BIT(5,B)         
@@ -3080,7 +3136,7 @@ begin
 /*    BIT 5 E    */     BIT_6B           : `BIT(5,E)         
 /*    BIT 5 H    */     BIT_6C           : `BIT(5,H)         
 /*    BIT 5 L    */     BIT_6D           : `BIT(5,L)         
-/*   BIT 5 (HL)  */     BIT_6E_0         : `get_one_byte(OP8)
+/*   BIT 5 (HL)  */     BIT_6E_0         : `getOneByte(OP8)
                         BIT_6E_1         : `BIT(5,OP8)       
 /*    BIT 5 A    */     BIT_6F           : `BIT(5,A)         
 /*    BIT 6 B    */     BIT_70           : `BIT(6,B)         
@@ -3089,7 +3145,7 @@ begin
 /*    BIT 6 E    */     BIT_73           : `BIT(6,E)         
 /*    BIT 6 H    */     BIT_74           : `BIT(6,H)         
 /*    BIT 6 L    */     BIT_75           : `BIT(6,L)         
-/*   BIT 6 (HL)  */     BIT_76_0         : `get_one_byte(OP8)
+/*   BIT 6 (HL)  */     BIT_76_0         : `getOneByte(OP8)
                         BIT_76_1         : `BIT(6,OP8)       
 /*    BIT 6 A    */     BIT_77           : `BIT(6,A)         
 /*    BIT 7 B    */     BIT_78           : `BIT(7,B)         
@@ -3098,7 +3154,7 @@ begin
 /*    BIT 7 E    */     BIT_7B           : `BIT(7,E)         
 /*    BIT 7 H    */     BIT_7C           : `BIT(7,H)         
 /*    BIT 7 L    */     BIT_7D           : `BIT(7,L)         
-/*   BIT 7 (HL)  */     BIT_7E_0         : `get_one_byte(OP8)	
+/*   BIT 7 (HL)  */     BIT_7E_0         : `getOneByte(OP8)	
                         BIT_7E_1         : `BIT(7,OP8)       
 /*    BIT 7 A    */     BIT_7F           : `BIT(7,A)         
 /*    RES 0 B    */     RES_80           : ;
