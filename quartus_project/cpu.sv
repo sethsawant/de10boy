@@ -59,6 +59,11 @@ logic N_flag_new, N_flag;
 logic H_flag_new, H_flag;
 logic C_flag_new, C_flag;
 
+logic [3:0] tmp;
+
+// logic [7:0] ALU_OP1, ALU_OP2, ALU_OUT;
+// logic ALU_ADD, ALU_ADC, ALU_SUB, ALU_SBC, ALU_AND, ALU_OR, ALU_XOR, ALU_CP, ALU_INC, ALU_DEC;
+
 // handling 16 bit combo registers
 always_comb begin : REGISTER_INPUTS
 	Z_flag = F[7];
@@ -89,6 +94,9 @@ register E_reg (.in(E_final_new), .clock(clock), .reset(reset), .load(E_ld | DE_
 register H_reg (.in(H_final_new), .clock(clock), .reset(reset), .load(H_ld | HL_ld), .out(H));
 register L_reg (.in(L_final_new), .clock(clock), .reset(reset), .load(L_ld | HL_ld), .out(L));
 
+// alu8 alu (.op1(ALU_OP1), .op2(ALU_OP2), .ADD(ALU_ADD), .ADC(ALU_ADC), .SUB(ALU_SUB), .SBC(ALU_SBC), .AND(ALU_AND), .OR(ALU_OR), 
+// 	.XOR(ALU_XOR), .CP(ALU_CP), .INC(ALU_INC), .DEC(ALU_DEC), .Z_flag(.Z_flag), .N_flag(.N_flag), .H_flag(.H_flag), .C_flag(.C_flag), .result(ALU_OUT),
+// 	.Z_flag_new(Z_ALU), .N_flag_new(N_ALU), .H_flag_new(H_ALU), .C_flag_new(C_ALU));
 
 // instruction macros
 `define get_one_byte(dst) \
@@ -131,6 +139,147 @@ begin \
 	mem_wren = 1'b1; \
 end
 
+`define readMemFromReg(addr_src, dst) \
+begin \
+	mem_addr = addr_src; \
+	``dst``_new = data_in; \
+	``dst``_ld = 1'b1; \
+end
+
+`define ADD(src) \
+begin \
+	A_new = A + src; \
+	A_ld = 1'b1; \
+	Z_flag_new = (A_new == 8'h0); \
+	N_flag_new = 1'b0; \
+	{H_flag_new, tmp} = A[3:0] + ``src``[3:0]; \
+	{C_flag_new, result} = A + src; \
+end
+
+`define ADC(src) \
+begin \
+	A_new = A + src + C_flag; \
+	A_ld = 1'b1; \
+	Z_flag_new = (A_new == 8'h0); \
+	N_flag_new = 1'b0; \
+	{H_flag_new, tmp} = A[3:0] + src[3:0] + C_flag; \
+	{C_flag_new, result} = A + src + C_flag; \
+end
+
+`define SUB(src) \
+begin \
+	A_new = A - src; \
+	A_ld = 1'b1; \
+	Z_flag_new = (A_new == 8'h0);\
+	N_flag_new = 1'b1; \
+	H_flag_new = A[3:0] < src[3:0] \
+	C_flag_new = A < src; \
+	F_ld = 1'b1; \
+end
+
+`define SBC(src) \
+begin \
+	A_new = A - (src + C_flag); \
+	A_ld = 1'b1; \
+	Z_flag_new = (A_new == 8'h0);\
+	N_flag_new = 1'b1; \
+	H_flag_new = A[3:0] < (src[3:0] + C_flag); \
+	C_flag_new = A < (src + C_flag); \
+	F_ld = 1'b1; \
+end
+
+`define AND(src) \
+begin \
+	A_new = src & A; \
+	A_ld = 1'b1; \
+	Z_flag_new = (A_new == 8'h0);\
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b1; \
+	C_flag_new = 1'b0; \
+	F_ld = 1'b1; \
+end
+
+`define OR(src) \
+begin \
+	A_new = src | A; \
+	A_ld = 1'b1; \
+	Z_flag_new = (A_new == 8'h0);\
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b0; \
+	C_flag_new = 1'b0; \
+	F_ld = 1'b1; \
+end
+
+`define XOR(src) \
+begin \
+	A_new = src ^ A; \
+	A_ld = 1'b1; \
+	Z_flag_new = (A_new == 8'h0);\
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b0; \
+	C_flag_new = 1'b0; \
+	F_ld = 1'b1; \
+end
+
+`define CP(src) \
+begin \
+	Z_flag_new = (A == src);\
+	N_flag_new = 1'b1; \
+	H_flag_new = A[3:0] < src[3:0] \
+	C_flag_new = A < src; \
+	F_ld = 1'b1; \
+end
+
+`define INC(src) \
+begin \
+	``src``_new = src + 1'b1; \
+	``src``_ld = 1'b1; \
+	Z_flag_new = (``src``_new == 8'h0); \
+	N_flag_new = 1'b0; \
+	{H_flag_new, tmp} = src[3:0] + 1'b1; \
+	F_ld = 1'b1; \
+end
+
+`define DEC(src) \
+begin \
+	``src``_new = src - 1'b1; \
+	``src``_ld = 1'b1; \
+	Z_flag_new = (``src``_new == 8'h0); \
+	N_flag_new = 1'b1; \
+	H_flag_new = src[3:0] < 1'b1; \
+	F_ld = 1'b1; \
+end
+
+
+`define ADD_NO_FLAGS(base,add) \
+begin \
+	``base``_new = base + add; \
+	``base``_ld = 1'b1; \
+end
+
+// 16 bit ALU operations
+
+`define ADD16(dst, src) \
+begin \
+	``dst``_new = dst + src; \
+	``dst``_ld = 1'b1; \
+	N_flag_new = 1'b0; \
+	{H_flag_new, tmp} = dst[11:0] + src[11:0]; \
+	{C_flag_new, result} = dst + src; \
+	F_ld = 1'b1; \
+end
+
+`define ADD_SP(src) \
+begin \
+	SP_new = SP + src; \
+	SP_ld = 1'b1; \
+	Z_flag_new = 1'b0; \
+	N_flag_new = 1'b0; \
+	{H_flag_new, tmp} = SP[11:0] + src[11:0]; \
+	{C_flag_new, result} = SP + src; \
+	F_ld = 1'b1; \
+end
+
 `define INC16(src) \
 begin \
 	``src``_new = src + 1'b1; \
@@ -141,24 +290,6 @@ end
 begin \
 	``src``_new = src - 1'b1; \
 	``src``_ld = 1'b1; \
-end
-
-`define XOR(src) \
-begin \
-	A_new = src ^ A; \
-	A_ld = 1'b1; \
-	if (A_new == 8'h0) begin Z_flag_new = 1'b1; end \
-	else Z_flag_new = 1'b0; \
-	N_flag_new = 1'b0; \
-	H_flag_new = 1'b0; \
-	C_flag_new = 1'b0; \
-	F_ld = 1'b1; \
-end
-
-`define ADD(base,add) \
-begin \
-	``base``_new = base + add; \
-	``base``_ld = 1'b1; \
 end
 
 // checks the bit of the source signal at the specified index
@@ -2354,17 +2485,17 @@ begin
 							set_prefixed_op_flag = 1'b1;
 						end
 /*      NOP      */     NOP_00           : ;
-/*   LD BC d16   */     LD_01_0          : ;
-                        LD_01_1          : ;
-                        LD_01_2          : ;
-/*   LD (BC) A   */     LD_02_0          : ;
-                        LD_02_1          : ;
-/*     INC BC    */     INC_03_0         : ;
+/*   LD BC d16   */     LD_01_0          : `get_low_byte(OP16)      
+                        LD_01_1          : `get_high_byte(OP16)     
+                        LD_01_2          : `writeRegFromReg(BC,OP16)
+/*   LD (BC) A   */     LD_02_0          : `get_one_byte(OP8)
+                        LD_02_1          : `writeMemFromReg(BC,OP8)
+/*     INC BC    */     INC_03_0         : `INC16(BC)
                         INC_03_1         : ;
-/*     INC B     */     INC_04           : ;
-/*     DEC B     */     DEC_05           : ;
-/*    LD B d8    */     LD_06_0          : ;
-                        LD_06_1          : ;
+/*     INC B     */     INC_04           : `INC(B)
+/*     DEC B     */     DEC_05           : `DEC(B)
+/*    LD B d8    */     LD_06_0          : `get_one_byte(OP8)
+                        LD_06_1          : `writeRegFromReg(B,OP8)
 /*      RLCA     */     RLCA_07          : ;
 /*  LD (a16) SP  */     LD_08_0          : ;
                         LD_08_1          : ;
@@ -2411,9 +2542,9 @@ begin
 /*      RRA      */     RRA_1F           : ;
 /*    JR NZ r8   */     JR_20_0          : `get_one_byte(OP8)
                         JR_20_1          : ;
-                        JR_20_2          : `ADD(PC,`SEXT16(OP8))
-/*   LD HL d16   */     LD_21_0          : `get_low_byte(OP16)
-                        LD_21_1          : `get_high_byte(OP16)
+                        JR_20_2          : `ADD_NO_FLAGS(PC,`SEXT16(OP8))
+/*   LD HL d16   */     LD_21_0          : `get_low_byte(OP16)      
+                        LD_21_1          : `get_high_byte(OP16)     
                         LD_21_2          : `writeRegFromReg(HL,OP16)
 /*   LD (HL+) A  */     LD_22_0          : ;
                         LD_22_1          : ;
@@ -2595,14 +2726,14 @@ begin
 /*    AND (HL)   */     AND_A6_0         : ;
                         AND_A6_1         : ;
 /*     AND A     */     AND_A7           : ;
-/*     XOR B     */     XOR_A8           : ;
-/*     XOR C     */     XOR_A9           : ;
-/*     XOR D     */     XOR_AA           : ;
-/*     XOR E     */     XOR_AB           : ;
-/*     XOR H     */     XOR_AC           : ;
-/*     XOR L     */     XOR_AD           : ;
-/*    XOR (HL)   */     XOR_AE_0         : ;
-                        XOR_AE_1         : ;
+/*     XOR B     */     XOR_A8           : `XOR(B)
+/*     XOR C     */     XOR_A9           : `XOR(C)
+/*     XOR D     */     XOR_AA           : `XOR(D)
+/*     XOR E     */     XOR_AB           : `XOR(E)
+/*     XOR H     */     XOR_AC           : `XOR(H)
+/*     XOR L     */     XOR_AD           : `XOR(L)
+/*    XOR (HL)   */     XOR_AE_0         : `get_one_byte(OP8)
+                        XOR_AE_1         : `XOR(OP8)
 /*     XOR A     */     XOR_AF           : `XOR(A)
 /*      OR B     */     OR_B0            : ;
 /*      OR C     */     OR_B1            : ;
