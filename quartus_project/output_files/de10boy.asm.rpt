@@ -1,5 +1,5 @@
 Assembler report for de10boy
-Sun Nov 15 16:00:58 2020
+Wed Dec 02 21:00:28 2020
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -37,9 +37,9 @@ refer to the applicable agreement for further details.
 +---------------------------------------------------------------+
 ; Assembler Summary                                             ;
 +-----------------------+---------------------------------------+
-; Assembler Status      ; Successful - Sun Nov 15 16:00:58 2020 ;
+; Assembler Status      ; Successful - Wed Dec 02 21:00:28 2020 ;
 ; Revision Name         ; de10boy                               ;
-; Top-level Entity Name ; memory                                ;
+; Top-level Entity Name ; de10boy                               ;
 ; Family                ; MAX 10                                ;
 ; Device                ; 10M50DAF484C7G                        ;
 +-----------------------+---------------------------------------+
@@ -66,8 +66,8 @@ refer to the applicable agreement for further details.
 +----------------+---------------------------------------------------------------------------------------------+
 ; Option         ; Setting                                                                                     ;
 +----------------+---------------------------------------------------------------------------------------------+
-; JTAG usercode  ; 0x0064AC52                                                                                  ;
-; Checksum       ; 0x0064AC52                                                                                  ;
+; JTAG usercode  ; 0x002768E4                                                                                  ;
+; Checksum       ; 0x002768E4                                                                                  ;
 +----------------+---------------------------------------------------------------------------------------------+
 
 
@@ -77,13 +77,15 @@ refer to the applicable agreement for further details.
 Info: *******************************************************************
 Info: Running Quartus Prime Assembler
     Info: Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
-    Info: Processing started: Sun Nov 15 16:00:56 2020
+    Info: Processing started: Wed Dec 02 21:00:26 2020
 Info: Command: quartus_asm --read_settings_files=off --write_settings_files=off de10boy -c de10boy
+Warning (125092): Tcl Script File ram.qip not found
+    Info (125063): set_global_assignment -name QIP_FILE ram.qip
 Info (115031): Writing out detailed assembly data for power analysis
 Info (115030): Assembler is generating device programming files
-Info: Quartus Prime Assembler was successful. 0 errors, 0 warnings
-    Info: Peak virtual memory: 4685 megabytes
-    Info: Processing ended: Sun Nov 15 16:00:58 2020
+Info: Quartus Prime Assembler was successful. 0 errors, 1 warning
+    Info: Peak virtual memory: 4681 megabytes
+    Info: Processing ended: Wed Dec 02 21:00:28 2020
     Info: Elapsed time: 00:00:02
     Info: Total CPU time (on all processors): 00:00:02
 

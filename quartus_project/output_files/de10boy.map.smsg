@@ -1,0 +1,1 @@
+Info (10281): Verilog HDL Declaration information at cpu.sv(2): object "reset" differs only in case from object "RESET" in the same scope File: S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cpu.sv Line: 2
