@@ -35,7 +35,7 @@ register #(.WIDTH(16)) SP_reg (.in(SP_new), .clock(clock), .reset(reset), .load(
 
 // internal registers
 logic [7:0] A_new, A;
-logic [7:0] F;
+logic [7:0] F_new, F;
 logic [7:0] B_new, B;
 logic [7:0] C_new, C;
 logic [7:0] D_new, D;
@@ -60,6 +60,7 @@ logic H_flag_new, H_flag;
 logic C_flag_new, C_flag;
 
 logic [3:0] tmp;
+logic [11:0] tmp12;
 
 // logic [7:0] ALU_OP1, ALU_OP2, ALU_OUT;
 // logic ALU_ADD, ALU_ADC, ALU_SUB, ALU_SBC, ALU_AND, ALU_OR, ALU_XOR, ALU_CP, ALU_INC, ALU_DEC;
@@ -86,7 +87,7 @@ always_comb begin : REGISTER_INPUTS
 end
 
 register A_reg (.in(A_new), .clock(clock), .reset(reset), .load(A_ld), .out(A));
-register F_reg (.in({Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}), .clock(clock), .reset(reset), .load(F_ld), .out(F));
+register F_reg (.in(F_new), .clock(clock), .reset(reset), .load(F_ld), .out(F));
 register B_reg (.in(B_final_new), .clock(clock), .reset(reset), .load(B_ld | BC_ld), .out(B));
 register C_reg (.in(C_final_new), .clock(clock), .reset(reset), .load(C_ld | BC_ld ), .out(C));
 register D_reg (.in(D_final_new), .clock(clock), .reset(reset), .load(D_ld | DE_ld), .out(D));
@@ -145,6 +146,17 @@ begin \
 	``dst``_new = data_in; \
 	``dst``_ld = 1'b1; \
 end
+
+`define popOneByte(dst) \
+begin \
+	mem_addr = SP; \
+	``dst``_new[7:0] = data_in; \
+	``dst``_ld = 1'b1; \
+	SP_new = SP + 1'b1; \
+	SP_ld = 1'b1; \
+end
+
+
 
 // 8 bit ALU operations //////////////////////////////////////////
 
@@ -266,7 +278,7 @@ begin \
 	``dst``_new = dst + src; \
 	``dst``_ld = 1'b1; \
 	N_flag_new = 1'b0; \
-	{H_flag_new, tmp} = dst[11:0] + src[11:0]; \
+	{H_flag_new, tmp12} = dst[11:0] + src[11:0]; \
 	{C_flag_new, ``dst``_new} = dst + src; \
 	F_ld = 1'b1; \
 end
@@ -2054,7 +2066,7 @@ begin
 		WAIT_LD_36_1     : Next_state = LD_36_2;
 		JR_38_0          : Next_state = WAIT_JR_38_0;
 		WAIT_JR_38_0     : Next_state = JR_38_1;
-		JR_38_1          : begin if (C_flag == 1'b1) Next_state = WAIT_JR_28_1; else Next_state = FETCH; end
+		JR_38_1          : begin if (C_flag == 1'b1) Next_state = WAIT_JR_38_1; else Next_state = FETCH; end
 		WAIT_JR_38_1     : Next_state = JR_38_2;
 		ADD_39_0         : Next_state = WAIT_ADD_39_0;
 		WAIT_ADD_39_0    : Next_state = ADD_39_1;
@@ -2110,7 +2122,7 @@ begin
 		WAIT_CP_BE_0     : Next_state = CP_BE_1;
 		RET_C0_0         : Next_state = WAIT_RET_C0_0;
 		WAIT_RET_C0_0    : Next_state = RET_C0_1;
-		RET_C0_1         : Next_state = WAIT_RET_C0_1;
+		RET_C0_1         : begin if (Z_flag == 1'b0) Next_state = WAIT_RET_C0_1; else Next_state = FETCH; end
 		WAIT_RET_C0_1    : Next_state = RET_C0_2;
 		RET_C0_2         : Next_state = WAIT_RET_C0_2;
 		WAIT_RET_C0_2    : Next_state = RET_C0_3;
@@ -2122,7 +2134,7 @@ begin
 		WAIT_POP_C1_1    : Next_state = POP_C1_2;
 		JP_C2_0          : Next_state = WAIT_JP_C2_0;
 		WAIT_JP_C2_0     : Next_state = JP_C2_1;
-		JP_C2_1          : Next_state = WAIT_JP_C2_1;
+		JP_C2_1          : begin if (Z_flag == 1'b0) Next_state = WAIT_JP_C2_1; else Next_state = FETCH; end
 		WAIT_JP_C2_1     : Next_state = JP_C2_2;
 		JP_C2_2          : Next_state = WAIT_JP_C2_2;
 		WAIT_JP_C2_2     : Next_state = JP_C2_3;
@@ -2158,7 +2170,7 @@ begin
 		WAIT_RST_C7_2    : Next_state = RST_C7_3;
 		RET_C8_0         : Next_state = WAIT_RET_C8_0;
 		WAIT_RET_C8_0    : Next_state = RET_C8_1;
-		RET_C8_1         : Next_state = WAIT_RET_C8_1;
+		RET_C8_1         : begin if (Z_flag == 1'b1) Next_state = WAIT_RET_C8_1; else Next_state = FETCH; end
 		WAIT_RET_C8_1    : Next_state = RET_C8_2;
 		RET_C8_2         : Next_state = WAIT_RET_C8_2;
 		WAIT_RET_C8_2    : Next_state = RET_C8_3;
@@ -2172,7 +2184,7 @@ begin
 		WAIT_RET_C9_2    : Next_state = RET_C9_3;
 		JP_CA_0          : Next_state = WAIT_JP_CA_0;
 		WAIT_JP_CA_0     : Next_state = JP_CA_1;
-		JP_CA_1          : Next_state = WAIT_JP_CA_1;
+		JP_CA_1          : begin if (Z_flag == 1'b1) Next_state = WAIT_JP_CA_1; else Next_state = FETCH; end
 		WAIT_JP_CA_1     : Next_state = JP_CA_2;
 		JP_CA_2          : Next_state = WAIT_JP_CA_2;
 		WAIT_JP_CA_2     : Next_state = JP_CA_3;
@@ -2206,7 +2218,7 @@ begin
 		WAIT_RST_CF_2    : Next_state = RST_CF_3;
 		RET_D0_0         : Next_state = WAIT_RET_D0_0;
 		WAIT_RET_D0_0    : Next_state = RET_D0_1;
-		RET_D0_1         : Next_state = WAIT_RET_D0_1;
+		RET_D0_1         : begin if (C_flag == 1'b0) Next_state = WAIT_RET_D0_1; else Next_state = FETCH; end
 		WAIT_RET_D0_1    : Next_state = RET_D0_2;
 		RET_D0_2         : Next_state = WAIT_RET_D0_2;
 		WAIT_RET_D0_2    : Next_state = RET_D0_3;
@@ -2218,7 +2230,7 @@ begin
 		WAIT_POP_D1_1    : Next_state = POP_D1_2;
 		JP_D2_0          : Next_state = WAIT_JP_D2_0;
 		WAIT_JP_D2_0     : Next_state = JP_D2_1;
-		JP_D2_1          : Next_state = WAIT_JP_D2_1;
+		JP_D2_1          : begin if (C_flag == 1'b0) Next_state = WAIT_JP_D2_1; else Next_state = FETCH; end
 		WAIT_JP_D2_1     : Next_state = JP_D2_2;
 		JP_D2_2          : Next_state = WAIT_JP_D2_2;
 		WAIT_JP_D2_2     : Next_state = JP_D2_3;
@@ -2248,7 +2260,7 @@ begin
 		WAIT_RST_D7_2    : Next_state = RST_D7_3;
 		RET_D8_0         : Next_state = WAIT_RET_D8_0;
 		WAIT_RET_D8_0    : Next_state = RET_D8_1;
-		RET_D8_1         : Next_state = WAIT_RET_D8_1;
+		RET_D8_1         : begin if (C_flag == 1'b1) Next_state = WAIT_RET_D8_1; else Next_state = FETCH; end
 		WAIT_RET_D8_1    : Next_state = RET_D8_2;
 		RET_D8_2         : Next_state = WAIT_RET_D8_2;
 		WAIT_RET_D8_2    : Next_state = RET_D8_3;
@@ -2262,7 +2274,7 @@ begin
 		WAIT_RETI_D9_2   : Next_state = RETI_D9_3;
 		JP_DA_0          : Next_state = WAIT_JP_DA_0;
 		WAIT_JP_DA_0     : Next_state = JP_DA_1;
-		JP_DA_1          : Next_state = WAIT_JP_DA_1;
+		JP_DA_1          : begin if (C_flag == 1'b1) Next_state = WAIT_JP_DA_1; else Next_state = FETCH; end
 		WAIT_JP_DA_1     : Next_state = JP_DA_2;
 		JP_DA_2          : Next_state = WAIT_JP_DA_2;
 		WAIT_JP_DA_2     : Next_state = JP_DA_3;
@@ -2490,7 +2502,7 @@ begin
 ////////// Assign control signals based on current state /////////////////////////////////////////////////////////////////////////////////
 
 	// Default controls signal values
-    {OR_ld, SP_ld, PC_ld, A_ld, F_ld, B_ld, C_ld, D_ld, E_ld, H_ld, L_ld, BC_ld, DE_ld, HL_ld}  = 14'b0;
+    {OP8_ld, OP16_ld, OR_ld, SP_ld, PC_ld, A_ld, F_ld, B_ld, C_ld, D_ld, E_ld, H_ld, L_ld, BC_ld, DE_ld, HL_ld}  = 16'b0;
     mem_wren = 1'b0;
     data_out = 8'hXX;
     mem_addr = 8'hXX;
@@ -2499,6 +2511,14 @@ begin
 	PC_new = PC;
 	OR_new = OR;
 
+	OP8_new = OP8;
+	OP16_new = OP16;
+
+	Z_flag_new = Z_flag;
+	N_flag_new = N_flag;
+	H_flag_new = H_flag;
+	C_flag_new = C_flag;
+
 	A_new = A;
 	B_new = B;
 	C_new = C;
@@ -2506,11 +2526,7 @@ begin
 	E_new = E;
 	H_new = H;
 	L_new = L;
-
-	Z_flag_new = Z_flag;
-	N_flag_new = N_flag;
-	H_flag_new = H_flag;
-	C_flag_new = C_flag;
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0};
 
 	BC_new = BC;
 	DE_new = DE;
@@ -2569,7 +2585,7 @@ begin
 /*    LD C d8    */     LD_0E_0          : `getOneByte(OP8)     
                         LD_0E_1          : `loadRegFromReg(C,OP8)
 /*      RRCA     */     RRCA_0F          : `RRC(A)
-/*      STOP     */     STOP_10          : ; // TODO
+/*      STOP     */     STOP_10          : ; // TODO STOP
 /*   LD DE d16   */     LD_11_0          : `getLowByte(OP16)      
                         LD_11_1          : `getHighByte(OP16)     
                         LD_11_2          : `loadRegFromReg(DE,OP16)
@@ -2610,7 +2626,7 @@ begin
 /*     DEC H     */     DEC_25           : `DEC(H)
 /*    LD H d8    */     LD_26_0          : `getOneByte(OP8)     
                         LD_26_1          : `loadRegFromReg(H,OP8)
-/*      DAA      */     DAA_27           : ; // TODO
+/*      DAA      */     DAA_27           : ; // TODO DAA
 /*    JR Z r8    */     JR_28_0          : `getOneByte(OP8)            
                         JR_28_1          : ;                             
                         JR_28_2          : `ADD_NO_FLAGS(PC,`SEXT16(OP8))
@@ -2644,7 +2660,7 @@ begin
 /*   LD (HL) d8  */     LD_36_0          : `getOneByte(OP8)
                         LD_36_1          : `writeToMemAtRegAddr(HL,OP8)
                         LD_36_2          : ;
-/*      SCF      */     SCF_37           : ; // TODO
+/*      SCF      */     SCF_37           : ; // TODO SCF
 /*    JR C r8    */     JR_38_0          : `getOneByte(OP8)            
                         JR_38_1          : ;                             
                         JR_38_2          : `ADD_NO_FLAGS(PC,`SEXT16(OP8))
@@ -2658,7 +2674,7 @@ begin
 /*     DEC A     */     DEC_3D           : `DEC(A)
 /*    LD A d8    */     LD_3E_0          : `getOneByte(A)
                         LD_3E_1          : ;
-/*      CCF      */     CCF_3F           : ; // TODO
+/*      CCF      */     CCF_3F           : ; // TODO CCF
 /*     LD B B    */     LD_40            : `loadRegFromReg(B,B) 
 /*     LD B C    */     LD_41            : `loadRegFromReg(B,C) 
 /*     LD B D    */     LD_42            : `loadRegFromReg(B,D) 
@@ -2725,7 +2741,7 @@ begin
                         LD_74_1          : ;
 /*   LD (HL) L   */     LD_75_0          : `writeToMemAtRegAddr(HL,L)
                         LD_75_1          : ;
-/*      HALT     */     HALT_76          : ; // TODO
+/*      HALT     */     HALT_76          : ; // TODO HALT
 /*   LD (HL) A   */     LD_77_0          : `writeToMemAtRegAddr(HL,A)
                         LD_77_1          : ;
 /*     LD A B    */     LD_78            : `loadRegFromReg(A,B) 
@@ -2788,7 +2804,7 @@ begin
 /*     XOR E     */     XOR_AB           : `XOR(E)
 /*     XOR H     */     XOR_AC           : `XOR(H)
 /*     XOR L     */     XOR_AD           : `XOR(L)
-/*    XOR (HL)   */     XOR_AE_0         : `getOneByte(OP8)
+/*    XOR (HL)   */     XOR_AE_0         : `readMemFromRegAddr(OP8,HL)
                         XOR_AE_1         : `XOR(OP8)
 /*     XOR A     */     XOR_AF           : `XOR(A)
 /*      OR B     */     OR_B0            : `OR(B)                
@@ -2811,19 +2827,19 @@ begin
 /*      CP A     */     CP_BF            : `CP(A)                
 /*     RET NZ    */     RET_C0_0         : ;
                         RET_C0_1         : ;
-                        RET_C0_2         : ;
-                        RET_C0_3         : ;
-                        RET_C0_4         : ;
-/*     POP BC    */     POP_C1_0         : ;
-                        POP_C1_1         : ;
+                        RET_C0_2         : `popOneByte(OP16) // pop lower byte into lower byte of OP16 
+                        RET_C0_3         : `popOneByte(OP8) // pop top byte into OP8                   
+                        RET_C0_4         : begin PC_new = {OP8,OP16[7:0]}; PC_ld = 1'b1; end // write PC
+/*     POP BC    */     POP_C1_0         : `popOneByte(C)
+                        POP_C1_1         : `popOneByte(B)
                         POP_C1_2         : ;
-/*   JP NZ a16   */     JP_C2_0          : ;
-                        JP_C2_1          : ;
-                        JP_C2_2          : ;
+/*   JP NZ a16   */     JP_C2_0          : `getLowByte(OP16)       
+                        JP_C2_1          : `getHighByte(OP16)      
+                        JP_C2_2          : `loadRegFromReg(PC,OP16)
                         JP_C2_3          : ;
-/*     JP a16    */     JP_C3_0          : ;
-                        JP_C3_1          : ;
-                        JP_C3_2          : ;
+/*     JP a16    */     JP_C3_0          : `getLowByte(OP16)       
+                        JP_C3_1          : `getHighByte(OP16)      
+                        JP_C3_2          : `loadRegFromReg(PC,OP16)
                         JP_C3_3          : ;
 /*  CALL NZ a16  */     CALL_C4_0        : ;
                         CALL_C4_1        : ;
@@ -2843,18 +2859,18 @@ begin
                         RST_C7_3         : ;
 /*     RET Z     */     RET_C8_0         : ;
                         RET_C8_1         : ;
-                        RET_C8_2         : ;
-                        RET_C8_3         : ;
-                        RET_C8_4         : ;
+                        RET_C8_2         : `popOneByte(OP16) // pop lower byte into lower byte of OP16 
+                        RET_C8_3         : `popOneByte(OP8) // pop top byte into OP8                   
+                        RET_C8_4         : begin PC_new = {OP8,OP16[7:0]}; PC_ld = 1'b1; end // write PC
 /*      RET      */     RET_C9_0         : ;
-                        RET_C9_1         : ;
-                        RET_C9_2         : ;
-                        RET_C9_3         : ;
-/*    JP Z a16   */     JP_CA_0          : ;
-                        JP_CA_1          : ;
-                        JP_CA_2          : ;
+                        RET_C9_1         : `popOneByte(OP16) // pop lower byte into lower byte of OP16 
+                        RET_C9_2         : `popOneByte(OP8) // pop top byte into OP8                   
+                        RET_C9_3         : begin PC_new = {OP8,OP16[7:0]}; PC_ld = 1'b1; end // write PC
+/*    JP Z a16   */     JP_CA_0          : `getLowByte(OP16)       
+                        JP_CA_1          : `getHighByte(OP16)      
+                        JP_CA_2          : `loadRegFromReg(PC,OP16)
                         JP_CA_3          : ;
-/*     PREFIX    */     PREFIX_CB        : ;
+// /*     PREFIX    */     PREFIX_CB        : ;
 /*   CALL Z a16  */     CALL_CC_0        : ;
                         CALL_CC_1        : ;
                         CALL_CC_2        : ;
@@ -2875,15 +2891,15 @@ begin
                         RST_CF_3         : ;
 /*     RET NC    */     RET_D0_0         : ;
                         RET_D0_1         : ;
-                        RET_D0_2         : ;
-                        RET_D0_3         : ;
-                        RET_D0_4         : ;
-/*     POP DE    */     POP_D1_0         : ;
-                        POP_D1_1         : ;
+                        RET_D0_2         : `popOneByte(OP16) // pop lower byte into lower byte of OP16 
+                        RET_D0_3         : `popOneByte(OP8) // pop top byte into OP8                   
+                        RET_D0_4         : begin PC_new = {OP8,OP16[7:0]}; PC_ld = 1'b1; end // write PC
+/*     POP DE    */     POP_D1_0         : `popOneByte(E)
+                        POP_D1_1         : `popOneByte(D)
                         POP_D1_2         : ;
-/*   JP NC a16   */     JP_D2_0          : ;
-                        JP_D2_1          : ;
-                        JP_D2_2          : ;
+/*   JP NC a16   */     JP_D2_0          : `getLowByte(OP16)       
+                        JP_D2_1          : `getHighByte(OP16)      
+                        JP_D2_2          : `loadRegFromReg(PC,OP16)
                         JP_D2_3          : ;
 /*   ILLEGAL_D3  */     ILLEGAL_D3_D3    : ;
 /*  CALL NC a16  */     CALL_D4_0        : ;
@@ -2904,9 +2920,9 @@ begin
                         RST_D7_3         : ;
 /*     RET C     */     RET_D8_0         : ;
                         RET_D8_1         : ;
-                        RET_D8_2         : ;
-                        RET_D8_3         : ;
-                        RET_D8_4         : ;
+                        RET_D8_2         : `popOneByte(OP16) // pop lower byte into lower byte of OP16 
+                        RET_D8_3         : `popOneByte(OP8) // pop top byte into OP8                   
+                        RET_D8_4         : begin PC_new = {OP8,OP16[7:0]}; PC_ld = 1'b1; end // write PC
 /*      RETI     */     RETI_D9_0        : ;
                         RETI_D9_1        : ;
                         RETI_D9_2        : ;
@@ -2932,8 +2948,8 @@ begin
 /*   LDH (a8) A  */     LDH_E0_0         : ;
                         LDH_E0_1         : ;
                         LDH_E0_2         : ;
-/*     POP HL    */     POP_E1_0         : ;
-                        POP_E1_1         : ;
+/*     POP HL    */     POP_E1_0         : `popOneByte(L)
+                        POP_E1_1         : `popOneByte(H)
                         POP_E1_2         : ;
 /*    LD (C) A   */     LD_E2_0          : ;
                         LD_E2_1          : ;
@@ -2953,7 +2969,7 @@ begin
                         ADD_E8_1         : ;
                         ADD_E8_2         : ;
                         ADD_E8_3         : ;
-/*     JP HL     */     JP_E9            : ;
+/*     JP HL     */     JP_E9            : `loadRegFromReg(PC,HL)
 /*   LD (a16) A  */     LD_EA_0          : ;
                         LD_EA_1          : ;
                         LD_EA_2          : ;
@@ -2970,8 +2986,8 @@ begin
 /*   LDH A (a8)  */     LDH_F0_0         : ;
                         LDH_F0_1         : ;
                         LDH_F0_2         : ;
-/*     POP AF    */     POP_F1_0         : ;
-                        POP_F1_1         : ;
+/*     POP AF    */     POP_F1_0         : `popOneByte(F)
+                        POP_F1_1         : `popOneByte(A)
                         POP_F1_2         : ;
 /*    LD A (C)   */     LD_F2_0          : ;
                         LD_F2_1          : ;
