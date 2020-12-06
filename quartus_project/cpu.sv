@@ -156,6 +156,15 @@ begin \
 	SP_ld = 1'b1; \
 end
 
+`define pushOneByte(src, byte_idx = 0) \
+begin \
+	mem_addr = SP - 1'b1; \
+	data_out = ``src``[7+byte_idx:byte_idx]; \
+	mem_wren = 1'b1; \
+	SP_new = SP - 1'b1; \
+	SP_ld = 1'b1; \
+end
+
 
 
 // 8 bit ALU operations //////////////////////////////////////////
@@ -2146,7 +2155,7 @@ begin
 		WAIT_JP_C3_2     : Next_state = JP_C3_3;
 		CALL_C4_0        : Next_state = WAIT_CALL_C4_0;
 		WAIT_CALL_C4_0   : Next_state = CALL_C4_1;
-		CALL_C4_1        : Next_state = WAIT_CALL_C4_1;
+		CALL_C4_1        : begin if (Z_flag == 1'b0) Next_state = WAIT_CALL_C4_1; else Next_state = FETCH; end 
 		WAIT_CALL_C4_1   : Next_state = CALL_C4_2;
 		CALL_C4_2        : Next_state = WAIT_CALL_C4_2;
 		WAIT_CALL_C4_2   : Next_state = CALL_C4_3;
@@ -2190,7 +2199,7 @@ begin
 		WAIT_JP_CA_2     : Next_state = JP_CA_3;
 		CALL_CC_0        : Next_state = WAIT_CALL_CC_0;
 		WAIT_CALL_CC_0   : Next_state = CALL_CC_1;
-		CALL_CC_1        : Next_state = WAIT_CALL_CC_1;
+		CALL_CC_1        : begin if (Z_flag == 1'b1) Next_state = WAIT_CALL_CC_1; else Next_state = FETCH; end
 		WAIT_CALL_CC_1   : Next_state = CALL_CC_2;
 		CALL_CC_2        : Next_state = WAIT_CALL_CC_2;
 		WAIT_CALL_CC_2   : Next_state = CALL_CC_3;
@@ -2236,7 +2245,7 @@ begin
 		WAIT_JP_D2_2     : Next_state = JP_D2_3;
 		CALL_D4_0        : Next_state = WAIT_CALL_D4_0;
 		WAIT_CALL_D4_0   : Next_state = CALL_D4_1;
-		CALL_D4_1        : Next_state = WAIT_CALL_D4_1;
+		CALL_D4_1        : begin if (C_flag == 1'b0) Next_state = WAIT_CALL_D4_1; else Next_state = FETCH; end
 		WAIT_CALL_D4_1   : Next_state = CALL_D4_2;
 		CALL_D4_2        : Next_state = WAIT_CALL_D4_2;
 		WAIT_CALL_D4_2   : Next_state = CALL_D4_3;
@@ -2280,7 +2289,7 @@ begin
 		WAIT_JP_DA_2     : Next_state = JP_DA_3;
 		CALL_DC_0        : Next_state = WAIT_CALL_DC_0;
 		WAIT_CALL_DC_0   : Next_state = CALL_DC_1;
-		CALL_DC_1        : Next_state = WAIT_CALL_DC_1;
+		CALL_DC_1        : begin if (C_flag == 1'b1) Next_state = WAIT_CALL_DC_1; else Next_state = FETCH; end
 		WAIT_CALL_DC_1   : Next_state = CALL_DC_2;
 		CALL_DC_2        : Next_state = WAIT_CALL_DC_2;
 		WAIT_CALL_DC_2   : Next_state = CALL_DC_3;
@@ -2841,21 +2850,21 @@ begin
                         JP_C3_1          : `getHighByte(OP16)      
                         JP_C3_2          : `loadRegFromReg(PC,OP16)
                         JP_C3_3          : ;
-/*  CALL NZ a16  */     CALL_C4_0        : ;
-                        CALL_C4_1        : ;
-                        CALL_C4_2        : ;
-                        CALL_C4_3        : ;
-                        CALL_C4_4        : ;
+/*  CALL NZ a16  */     CALL_C4_0        : `getLowByte(OP16) // get address                          
+                        CALL_C4_1        : `getHighByte(OP16)                                        
+                        CALL_C4_2        : `pushOneByte(PC, 8) // push current PC to stack
+                        CALL_C4_3        : `pushOneByte(PC, 0)                            
+                        CALL_C4_4        : `loadRegFromReg(PC,OP16) // jump to specified address     
                         CALL_C4_5        : ;
-/*    PUSH BC    */     PUSH_C5_0        : ;
-                        PUSH_C5_1        : ;
+/*    PUSH BC    */     PUSH_C5_0        : `pushOneByte(B)
+                        PUSH_C5_1        : `pushOneByte(C)
                         PUSH_C5_2        : ;
                         PUSH_C5_3        : ;
-/*    ADD A d8   */     ADD_C6_0         : ;
-                        ADD_C6_1         : ;
-/*    RST 00H    */     RST_C7_0         : ;
-                        RST_C7_1         : ;
-                        RST_C7_2         : ;
+/*    ADD A d8   */     ADD_C6_0         : `getOneByte(OP8)
+                        ADD_C6_1         : `ADD(OP8)       
+/*    RST 00H    */     RST_C7_0         : `pushOneByte(PC, 8)                     
+                        RST_C7_1         : `pushOneByte(PC, 0)                     
+                        RST_C7_2         : begin PC_new = 16'h00; PC_ld = 1'b1; end
                         RST_C7_3         : ;
 /*     RET Z     */     RET_C8_0         : ;
                         RET_C8_1         : ;
@@ -2870,24 +2879,23 @@ begin
                         JP_CA_1          : `getHighByte(OP16)      
                         JP_CA_2          : `loadRegFromReg(PC,OP16)
                         JP_CA_3          : ;
-// /*     PREFIX    */     PREFIX_CB        : ;
-/*   CALL Z a16  */     CALL_CC_0        : ;
-                        CALL_CC_1        : ;
-                        CALL_CC_2        : ;
-                        CALL_CC_3        : ;
-                        CALL_CC_4        : ;
+/*   CALL Z a16  */     CALL_CC_0        : `getLowByte(OP16) // get address                          
+                        CALL_CC_1        : `getHighByte(OP16)                                        
+                        CALL_CC_2        : `pushOneByte(PC, 8) // push current PC to stack
+                        CALL_CC_3        : `pushOneByte(PC, 0)                            
+                        CALL_CC_4        : `loadRegFromReg(PC,OP16) // jump to specified address     
                         CALL_CC_5        : ;
-/*    CALL a16   */     CALL_CD_0        : ;
-                        CALL_CD_1        : ;
-                        CALL_CD_2        : ;
-                        CALL_CD_3        : ;
-                        CALL_CD_4        : ;
+/*    CALL a16   */     CALL_CD_0        : `getLowByte(OP16) // get address                          
+                        CALL_CD_1        : `getHighByte(OP16)                                        
+                        CALL_CD_2        : `pushOneByte(PC, 8) // push current PC to stack
+                        CALL_CD_3        : `pushOneByte(PC, 0)                            
+                        CALL_CD_4        : `loadRegFromReg(PC,OP16) // jump to specified address     
                         CALL_CD_5        : ;
-/*    ADC A d8   */     ADC_CE_0         : ;
-                        ADC_CE_1         : ;
-/*    RST 08H    */     RST_CF_0         : ;
-                        RST_CF_1         : ;
-                        RST_CF_2         : ;
+/*    ADC A d8   */     ADC_CE_0         : `getOneByte(OP8)
+                        ADC_CE_1         : `ADC(OP8)       
+/*    RST 08H    */     RST_CF_0         : `pushOneByte(PC, 8)                     
+                        RST_CF_1         : `pushOneByte(PC, 0)                     
+                        RST_CF_2         : begin PC_new = 16'h08; PC_ld = 1'b1; end
                         RST_CF_3         : ;
 /*     RET NC    */     RET_D0_0         : ;
                         RET_D0_1         : ;
@@ -2901,22 +2909,22 @@ begin
                         JP_D2_1          : `getHighByte(OP16)      
                         JP_D2_2          : `loadRegFromReg(PC,OP16)
                         JP_D2_3          : ;
-/*   ILLEGAL_D3  */     ILLEGAL_D3_D3    : ;
-/*  CALL NC a16  */     CALL_D4_0        : ;
-                        CALL_D4_1        : ;
-                        CALL_D4_2        : ;
-                        CALL_D4_3        : ;
-                        CALL_D4_4        : ;
+/*   ILLEGAL_D3  */     ILLEGAL_D3_D3    : ; // TODO
+/*  CALL NC a16  */     CALL_D4_0        : `getLowByte(OP16) // get address                          
+                        CALL_D4_1        : `getHighByte(OP16)                                        
+                        CALL_D4_2        : `pushOneByte(PC, 8) // push current PC to stack
+                        CALL_D4_3        : `pushOneByte(PC, 0)                            
+                        CALL_D4_4        : `loadRegFromReg(PC,OP16) // jump to specified address     
                         CALL_D4_5        : ;
-/*    PUSH DE    */     PUSH_D5_0        : ;
-                        PUSH_D5_1        : ;
+/*    PUSH DE    */     PUSH_D5_0        : `pushOneByte(D)
+                        PUSH_D5_1        : `pushOneByte(E)
                         PUSH_D5_2        : ;
                         PUSH_D5_3        : ;
-/*     SUB d8    */     SUB_D6_0         : ;
-                        SUB_D6_1         : ;
-/*    RST 10H    */     RST_D7_0         : ;
-                        RST_D7_1         : ;
-                        RST_D7_2         : ;
+/*     SUB d8    */     SUB_D6_0         : `getOneByte(OP8)
+                        SUB_D6_1         : `SUB(OP8)       
+/*    RST 10H    */     RST_D7_0         : `pushOneByte(PC, 8)                     
+                        RST_D7_1         : `pushOneByte(PC, 0)                     
+                        RST_D7_2         : begin PC_new = 16'h10; PC_ld = 1'b1; end
                         RST_D7_3         : ;
 /*     RET C     */     RET_D8_0         : ;
                         RET_D8_1         : ;
@@ -2932,18 +2940,18 @@ begin
                         JP_DA_2          : ;
                         JP_DA_3          : ;
 /*   ILLEGAL_DB  */     ILLEGAL_DB_DB    : ;
-/*   CALL C a16  */     CALL_DC_0        : ;
-                        CALL_DC_1        : ;
-                        CALL_DC_2        : ;
-                        CALL_DC_3        : ;
-                        CALL_DC_4        : ;
+/*   CALL C a16  */     CALL_DC_0        : `getLowByte(OP16) // get address                          
+                        CALL_DC_1        : `getHighByte(OP16)                                        
+                        CALL_DC_2        : `pushOneByte(PC, 8) // push current PC to stack
+                        CALL_DC_3        : `pushOneByte(PC, 0)                            
+                        CALL_DC_4        : `loadRegFromReg(PC,OP16) // jump to specified address     
                         CALL_DC_5        : ;
 /*   ILLEGAL_DD  */     ILLEGAL_DD_DD    : ;
 /*    SBC A d8   */     SBC_DE_0         : ;
                         SBC_DE_1         : ;
-/*    RST 18H    */     RST_DF_0         : ;
-                        RST_DF_1         : ;
-                        RST_DF_2         : ;
+/*    RST 18H    */     RST_DF_0         : `pushOneByte(PC, 8)                     
+                        RST_DF_1         : `pushOneByte(PC, 0)                     
+                        RST_DF_2         : begin PC_new = 16'h18; PC_ld = 1'b1; end
                         RST_DF_3         : ;
 /*   LDH (a8) A  */     LDH_E0_0         : ;
                         LDH_E0_1         : ;
@@ -2961,9 +2969,9 @@ begin
                         PUSH_E5_3        : ;
 /*     AND d8    */     AND_E6_0         : ;
                         AND_E6_1         : ;
-/*    RST 20H    */     RST_E7_0         : ;
-                        RST_E7_1         : ;
-                        RST_E7_2         : ;
+/*    RST 20H    */     RST_E7_0         : `pushOneByte(PC, 8)                     
+                        RST_E7_1         : `pushOneByte(PC, 0)                     
+                        RST_E7_2         : begin PC_new = 16'h20; PC_ld = 1'b1; end
                         RST_E7_3         : ;
 /*   ADD SP r8   */     ADD_E8_0         : ;
                         ADD_E8_1         : ;
@@ -2979,9 +2987,9 @@ begin
 /*   ILLEGAL_ED  */     ILLEGAL_ED_ED    : ;
 /*     XOR d8    */     XOR_EE_0         : ;
                         XOR_EE_1         : ;
-/*    RST 28H    */     RST_EF_0         : ;
-                        RST_EF_1         : ;
-                        RST_EF_2         : ;
+/*    RST 28H    */     RST_EF_0         : `pushOneByte(PC, 8)                     
+                        RST_EF_1         : `pushOneByte(PC, 0)                     
+                        RST_EF_2         : begin PC_new = 16'h28; PC_ld = 1'b1; end
                         RST_EF_3         : ;
 /*   LDH A (a8)  */     LDH_F0_0         : ;
                         LDH_F0_1         : ;
@@ -2999,9 +3007,9 @@ begin
                         PUSH_F5_3        : ;
 /*     OR d8     */     OR_F6_0          : ;
                         OR_F6_1          : ;
-/*    RST 30H    */     RST_F7_0         : ;
-                        RST_F7_1         : ;
-                        RST_F7_2         : ;
+/*    RST 30H    */     RST_F7_0         : `pushOneByte(PC, 8)                     
+                        RST_F7_1         : `pushOneByte(PC, 0)                     
+                        RST_F7_2         : begin PC_new = 16'h30; PC_ld = 1'b1; end
                         RST_F7_3         : ;
 /*    LD HL SP   */     LD_F8_0          : ;
                         LD_F8_1          : ;
@@ -3017,10 +3025,13 @@ begin
 /*   ILLEGAL_FD  */     ILLEGAL_FD_FD    : ;
 /*     CP d8     */     CP_FE_0          : ;
                         CP_FE_1          : ;
-/*    RST 38H    */     RST_FF_0         : ;
-                        RST_FF_1         : ;
-                        RST_FF_2         : ;
+/*    RST 38H    */     RST_FF_0         : `pushOneByte(PC, 8)                     
+                        RST_FF_1         : `pushOneByte(PC, 0)                     
+                        RST_FF_2         : begin PC_new = 16'h38; PC_ld = 1'b1; end
                         RST_FF_3         : ;
+
+/////////////////////// PREFIX OPS /////////
+
 /*     RLC B     */     RLC_00           : ;
 /*     RLC C     */     RLC_01           : ;
 /*     RLC D     */     RLC_02           : ;
