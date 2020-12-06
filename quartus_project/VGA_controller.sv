@@ -33,8 +33,6 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
     
     // 800 horizontal pixels indexed 0 to 799
     // 525 vertical pixels indexed 0 to 524
-    // parameter [9:0] hpixels = 10'b1100011111;
-    // parameter [9:0] vlines = 10'b1000001100;
         parameter [9:0] hpixels = 10'd799;
         parameter [9:0] vlines = 10'd524;
 //    parameter [9:0] hpixels = 8'b10011111; // 160 height
@@ -64,10 +62,10 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
 					if ( vc == vlines )   //if vc has reached end of line count
 						 vc <= 10'h0;
 					else 
-						 vc <= (vc + 1);
+						 vc <= (vc + 10'h1);
 			  end
 			 else 
-				  hc <= (hc + 1);  //no statement about vc, implied vc <= vc;
+				  hc <= (hc + 10'h1);  //no statement about vc, implied vc <= vc;
 	 end 
    
     assign DrawX = hc;
