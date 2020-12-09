@@ -8,7 +8,6 @@ module memory (
     input logic cpu_wren,
 	input logic ppu_vram_read_en, ppu_oam_read_en,
     input logic [7:0] cpu_data_in, ppu_data_in,
-	input logic [5:0] ime_reg_in, if_reg_in,
     output logic [7:0] cpu_data_out, ppu_data_out
 );
 
@@ -168,7 +167,7 @@ always_comb begin : MEMORY_MAP
 	if (cpu_addr >= 16'hFF00 && cpu_addr <= 16'hFF7F) 
 		begin 
 			cpu_data_out = 8'hFF;
-			if (cpu_addr == 16'hFF0F) cpu_data_out = {3'b000, if_reg_in};
+			if (cpu_addr == 16'hFF0F) cpu_data_out = {8'h0}; // TODO
 		end
 
 	// HRAM
@@ -176,12 +175,6 @@ always_comb begin : MEMORY_MAP
 		begin 
 			high_ram_wren = cpu_wren;
 			cpu_data_out = high_ram_out;
-		end
-
-	// Interrupts Master Enable Register (IME)
-	if (cpu_addr == 16'hFFFF ) 
-		begin
-			cpu_data_out = {3'b000, ime_reg_in};
 		end
 
 end

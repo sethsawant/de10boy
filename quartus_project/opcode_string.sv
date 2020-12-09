@@ -5,7 +5,7 @@ module opcode_string (
     input logic [7:0] current_op, 
     output reg [24*8-1:0] opcode_str
 );
-    always@(current_op) begin
+    always@(current_op or is_prefixed_op) begin
         if (is_prefixed_op == 1'b0) begin
             case(current_op)
                 8'h00 : opcode_str = "NOP";

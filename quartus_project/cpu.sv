@@ -156,10 +156,10 @@ begin \
 	SP_ld = 1'b1; \
 end
 
-`define pushOneByte(src, byte_idx = 0) \
+`define pushOneByte(src, byteidx) \
 begin \
 	mem_addr = SP - 1'b1; \
-	data_out = ``src``[7+byte_idx:byte_idx]; \
+	data_out = ``src``[7+byteidx:byteidx]; \
 	mem_wren = 1'b1; \
 	SP_new = SP - 1'b1; \
 	SP_ld = 1'b1; \
@@ -2856,8 +2856,8 @@ begin
                         CALL_C4_3        : `pushOneByte(PC, 0)                            
                         CALL_C4_4        : `loadRegFromReg(PC,OP16) // jump to specified address     
                         CALL_C4_5        : ;
-/*    PUSH BC    */     PUSH_C5_0        : `pushOneByte(B)
-                        PUSH_C5_1        : `pushOneByte(C)
+/*    PUSH BC    */     PUSH_C5_0        : `pushOneByte(B, 0)
+                        PUSH_C5_1        : `pushOneByte(C, 0)
                         PUSH_C5_2        : ;
                         PUSH_C5_3        : ;
 /*    ADD A d8   */     ADD_C6_0         : `getOneByte(OP8)
@@ -2916,8 +2916,8 @@ begin
                         CALL_D4_3        : `pushOneByte(PC, 0)                            
                         CALL_D4_4        : `loadRegFromReg(PC,OP16) // jump to specified address     
                         CALL_D4_5        : ;
-/*    PUSH DE    */     PUSH_D5_0        : `pushOneByte(D)
-                        PUSH_D5_1        : `pushOneByte(E)
+/*    PUSH DE    */     PUSH_D5_0        : `pushOneByte(D, 0)
+                        PUSH_D5_1        : `pushOneByte(E, 0)
                         PUSH_D5_2        : ;
                         PUSH_D5_3        : ;
 /*     SUB d8    */     SUB_D6_0         : `getOneByte(OP8)

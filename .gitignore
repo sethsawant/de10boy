@@ -1,0 +1,7 @@
+quartus_project/.qsys_edit/
+quartus_project/db/
+quartus_project/greybox_tmp/
+quartus_project/incremental_db/
+quartus_project/output_files/
+quartus_project/sim/
+quartus_project/simulation/

@@ -13,13 +13,16 @@
 --refer to the applicable agreement for further details.
 
 
-FUNCTION clock_pll 
+FUNCTION framebuffer_ram 
 (
-	inclk0
+	data[1..0],
+	rdaddress[13..0],
+	rdclock,
+	wraddress[13..0],
+	wrclock,
+	wren
 )
 
 RETURNS (
-	c0,
-	c1,
-	locked
+	q[1..0]
 );

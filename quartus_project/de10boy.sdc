@@ -1,6 +1,6 @@
 # Constrain clock port clk with a 10-ns requirement
 
-create_clock -period "4.0 MHz" [get_ports Clk]
+create_clock -period "50.0 MHz" [get_ports Clk]
 
 derive_pll_clocks
 derive_clock_uncertainty
