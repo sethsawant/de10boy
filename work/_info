@@ -1,0 +1,283 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dS:/FilesSSD/ECE_385/Final_Project/de10boy
+vboot_rom
+Z1 !s110 1607467292
+!i10b 1
+!s100 [SNDzSVUQFCA2Q;ooLzIc3
+IW`]RTW1XLklfZoK0;o>lh0
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+R0
+Z3 w1607465622
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/boot_rom_bb.v
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/boot_rom_bb.v
+Z4 L0 34
+Z5 OV;L;10.5b;63
+r1
+!s85 0
+31
+Z6 !s108 1607467292.000000
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/boot_rom_bb.v|
+!s90 -reportprogress|300|-work|work|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/boot_rom_bb.v|
+!i113 1
+Z7 o-work work
+Z8 tCvgOpt 0
+vcart_rom
+R1
+!i10b 1
+!s100 =EDm]51NM0]F;^a6Pj]A21
+IIBV3dWX]Q`:E80kV1<7]b1
+R2
+R0
+R3
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cart_rom_bb.v
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cart_rom_bb.v
+R4
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cart_rom_bb.v|
+!s90 -reportprogress|300|-work|work|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cart_rom_bb.v|
+!i113 1
+R7
+R8
+vclock_pll
+R1
+!i10b 1
+!s100 7YZiK7Pb@RnSc^FdGKOfC2
+I9J97J<QQ0^3bd4^Ye2ho[3
+R2
+R0
+R3
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/clock_pll_bb.v
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/clock_pll_bb.v
+R4
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/clock_pll_bb.v|
+!s90 -reportprogress|300|-work|work|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/clock_pll_bb.v|
+!i113 1
+R7
+R8
+vcpu
+Z9 DXx6 sv_std 3 std 0 22 AD7iAPLo6nTIKk<N0eo=D3
+R1
+!i10b 1
+!s100 o5=8i]81Oad0^:=86z??L3
+IYhanlRk@dkm4`A0Cb`8D?1
+R2
+!s105 cpu_sv_unit
+S1
+R0
+R3
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cpu.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cpu.sv
+L0 1
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cpu.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/cpu.sv|
+!i113 1
+Z10 o-work work -sv
+R8
+vcpu_testbench
+R9
+R1
+!i10b 1
+!s100 ;fOUS1VdBn8>CfN0L[71J1
+I3=`jojJWA1IV<mHa_AoW11
+R2
+!s105 de10boy_testbench_sv_unit
+S1
+R0
+w1607466330
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/de10boy_testbench.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/de10boy_testbench.sv
+L0 1
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/de10boy_testbench.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/de10boy_testbench.sv|
+!i113 1
+R10
+R8
+vde10boy
+R9
+R1
+!i10b 1
+!s100 c4[A2OJhC1MSje6`nSoHJ0
+I>g0TOL^LS@6iKRdaCfTi@1
+R2
+!s105 de10boy_sv_unit
+S1
+R0
+w1607466015
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/de10boy.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/de10boy.sv
+L0 1
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/de10boy.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/de10boy.sv|
+!i113 1
+R10
+R8
+vmemory
+R9
+R1
+!i10b 1
+!s100 [6c=blX<Sch`K4;JhU5SP3
+IKdIfcCe7oI`AB2LbVg?_>1
+R2
+!s105 memory_sv_unit
+S1
+R0
+Z11 w1607465623
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/memory.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/memory.sv
+L0 3
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/memory.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/memory.sv|
+!i113 1
+R10
+R8
+vopcode_string
+R9
+R1
+!i10b 1
+!s100 _NhTk3nNV?zb^P?Kjz==41
+IO4VBPgmDaUBgBj1^X;5nW3
+R2
+!s105 opcode_string_sv_unit
+S1
+R0
+R11
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/opcode_string.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/opcode_string.sv
+L0 3
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/opcode_string.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/opcode_string.sv|
+!i113 1
+R10
+R8
+vram_256
+R1
+!i10b 1
+!s100 GzWP9`JeL9RKFd>CNV^c63
+I>9H]iOV04^^<d<ilfI9^W1
+R2
+R0
+R11
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/ram_256.v
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/ram_256.v
+L0 39
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/ram_256.v|
+!s90 -reportprogress|300|-work|work|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/ram_256.v|
+!i113 1
+R7
+R8
+vram_8k
+R1
+!i10b 1
+!s100 [=L7dOTOF2M?BN]c@bBij0
+IHlF4LVLd;?3@5>MNHOmzS2
+R2
+R0
+R11
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/ram_8k_bb.v
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/ram_8k_bb.v
+R4
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/ram_8k_bb.v|
+!s90 -reportprogress|300|-work|work|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/ram_8k_bb.v|
+!i113 1
+R7
+R8
+vregister
+R9
+R1
+!i10b 1
+!s100 `?XV0PCSPIk]1Nl9K_Qaj3
+Iio`TXWedER6SURWfDnX>L2
+R2
+!s105 reg_sv_unit
+S1
+R0
+R11
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/reg.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/reg.sv
+L0 2
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/reg.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/reg.sv|
+!i113 1
+R10
+R8
+vvga_controller
+R9
+R1
+!i10b 1
+!s100 B6oP5>bID216F;fW1Vn1e1
+ICMXl5QOiP`W[7;ad0KaAz3
+R2
+!s105 VGA_controller_sv_unit
+S1
+R0
+R3
+8S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/VGA_controller.sv
+FS:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/VGA_controller.sv
+L0 25
+R5
+r1
+!s85 0
+31
+R6
+!s107 S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/VGA_controller.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|S:/FilesSSD/ECE_385/Final_Project/de10boy/quartus_project/VGA_controller.sv|
+!i113 1
+R10
+R8
