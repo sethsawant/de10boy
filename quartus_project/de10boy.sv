@@ -65,7 +65,7 @@ end
 vga_controller vga (.Clk(Clk), .Reset(reset), .hs(VGA_HS), .vs(VGA_VS), 
 					.blank(blank), .DrawX(DrawX), .DrawY(DrawY) );
 
-frame_buffer fram (.in(), .X_write(), .Y_write(), .wren(1'b0), .wrclock(), .out(), .X_read(DrawX), .Y_read(DrawY), .rdclock(Clk));
+frame_buffer fram (.in(), .X_write(), .Y_write(), .wren(1'b0), .wrclock(), .out(), .X_read(DrawX[7:0]), .Y_read(DrawY[7:0]), .rdclock(Clk));
 
     
 endmodule
