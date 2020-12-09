@@ -56,3 +56,4 @@ quartus_project/output_files/de10boy.sof
 quartus_project/output_files/de10boy.sta.rpt
 quartus_project/simulation/modelsim/de10boy_modelsim.xrf
 quartus_project/simulation/modelsim/de10boy.svo
+quartus_project/de10boy_nativelink_simulation.rpt
