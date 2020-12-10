@@ -12,7 +12,7 @@ module de10boy (
       output   [ 3: 0]   VGA_R,
       output   [ 3: 0]   VGA_G,
       output   [ 3: 0]   VGA_B,
-      output   [15:0] placeholder
+      output   [15:0] placeholder // prevents RAM modules from being synthesized out 
 
 
     //   ///////// ARDUINO /////////
@@ -34,7 +34,6 @@ logic ppu_write_mode; // 0 if ppu is reading oam, 1 if reading vram
 logic [7:0] ppuX, ppuY; // current pixel that ppu is rendering
 logic [1:0] buffer_pixel_in, buffer_pixel_out;
 
-
 logic ppu_frame_wren;
 
 // interrupt lines
@@ -43,14 +42,12 @@ logic joypad_int, serial_int, timer_int, lcdc_int, vblank_int;
 assign {reset}= ~ (KEY[0]);
 
 // // // c0 = 2.1Mhz 
-// clock_pll clock_generator (.locked(), .inclk0(Clk), .c0(clock), .c1(memclock)); 
-// assign placeholder = {cpu_data_out, ppu_data_in};
-// assign memclock = Clk;
+clock_pll clock_generator (.locked(), .inclk0(Clk), .c0(clock), .c1(memclock)); 
 
-cpu cpu (.clock(Clk), .reset(reset), .data_in(cpu_data_in), 
+cpu cpu (.clock(clock), .reset(reset), .data_in(cpu_data_in), 
         .data_out(cpu_data_out), .mem_addr(cpu_mem_addr), .mem_wren(cpu_mem_wren));
 
-memory memory_map (.cpu_addr(cpu_mem_addr), .ppu_addr(ppu_mem_addr), .clock(Clk), .boot_rom_en(1'b1), .cpu_wren(cpu_mem_wren), 
+memory memory_map (.cpu_addr(cpu_mem_addr), .ppu_addr(ppu_mem_addr), .clock(memclock), .boot_rom_en(1'b1), .cpu_wren(cpu_mem_wren), 
                 .ppu_vram_read_en(ppu_vram_read_en), .ppu_oam_read_en(ppu_oam_read_en), .cpu_data_in(cpu_data_out),
                 .cpu_data_out(cpu_data_in), .ppu_data_out(ppu_data_in), .ppu_read_mode(ppu_read_mode));
 
