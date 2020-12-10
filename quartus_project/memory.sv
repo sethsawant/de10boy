@@ -6,8 +6,8 @@ module memory (
     input logic clock,
 	input logic boot_rom_en,
     input logic cpu_wren,
-	input logic ppu_vram_read_en, ppu_oam_read_en,
-    input logic [7:0] cpu_data_in, ppu_data_in,
+	input logic ppu_vram_read_en, ppu_oam_read_en, ppu_read_mode,
+    input logic [7:0] cpu_data_in,
     output logic [7:0] cpu_data_out, ppu_data_out
 );
 
@@ -73,33 +73,30 @@ ram_256 high_ram ( // high RAM (HRAM) (127 B only are used)
 	.q ( high_ram_out )
 	);
 
-
-
 always_comb begin : MEMORY_MAP
 
-	video_ram_in = ppu_data_in; // by default ppu has VRAM control
+	// video_ram_in = ppu_data_in; // by default ppu has VRAM control
 	video_ram_addr = ppu_addr[12:0];
-	ppu_data_out = video_ram_out; // PPU always reads video RAM
-	video_ram_wren = 1'b0; // PPU does not write the video RAM
 
-
-	oam_in = ppu_data_in; // by default ppu has OAM control
+	// oam_in = ppu_data_in; // by default ppu has OAM control
 	oam_addr = ppu_addr[7:0];
-	ppu_data_out = oam_out; // PPU always reads OAM
-	oam_wren = 1'b0; // PPU does not write the OAM
 
-	// selects what region of memory PPU is reading from
-	if (ppu_oam_read_en && ~ppu_vram_read_en) ppu_data_out = oam_out;
-	else if (~ppu_oam_read_en && ppu_vram_read_en) ppu_data_out = video_ram_out;
+	// selects what region of memory PPU is reading from based on the current mode 
+	if (ppu_read_mode == 0) ppu_data_out = oam_out;
+	else ppu_data_out = video_ram_out;
 
 	// disable writes by default
 	external_ram_wren = 1'b0;
 	work_ram_wren = 1'b0;
 	high_ram_wren = 1'b0;
+	video_ram_wren = 1'b0; 
+	oam_wren = 1'b0;
 
 	external_ram_in = cpu_data_in;
 	work_ram_in = cpu_data_in;
 	high_ram_in = cpu_data_in;
+	oam_in = cpu_data_in;
+	video_ram_in = cpu_data_in;
 
 	cpu_data_out = 8'hXX;
 

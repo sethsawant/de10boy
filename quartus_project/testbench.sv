@@ -1,23 +1,25 @@
-module de10boy_testbench ();
+module test ();
 
 timeunit 10ns;	// Half Clk cycle at 50 MHz
 			// This is the amount of time represented by #1 
 timeprecision 1ns;
 
-logic Clk;
+logic Clk, sim_cpu_clock;
 logic [1:0] KEY;
 logic reset;
 
+
+
 assign KEY[0] = ~reset;
-de10boy gb (.Clk(Clk), .KEY(KEY), .VGA_HS(), .VGA_VS(), .VGA_R(), .VGA_G(), .VGA_B() );
+de10boy gb (.Clk(Clk), 
+            // .clock(sim_cpu_clock), 
+            .KEY(KEY), .VGA_HS(), .VGA_VS(), .VGA_R(), .VGA_G(), .VGA_B() );
 
 logic [15:0] PC,SP,HL;
 logic [7:0] A,F,B,C,D,E;
 logic [15:0] MEM_ADDR;
 logic [7:0] MEM_IN, MEM_OUT;
 reg [24*8-1:0] OPCODE;
-
-
 
 always_comb begin : INTERNAL_SIG_BREAKOUTS
     A = gb.cpu.A;
@@ -42,12 +44,17 @@ end
     
 integer ErrorCnt = 0;
 
-always begin : CLOCK_GENERATION
+always begin : CLK_CLOCK_GENERATION
     #1 Clk = ~Clk;
 end
 
+// always begin : CLOCK_GENERATION
+//     #25 sim_cpu_clock = ~sim_cpu_clock;
+// end
+
 initial begin: CLOCK_INITIALIZATION
     Clk = 0;
+    sim_cpu_clock = 0;
 end 
 
 task testFailed(input string str);

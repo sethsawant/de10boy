@@ -7,11 +7,18 @@ module frame_buffer (
     input logic rdclock
 );
 
+logic [13:0] buffer_in_idx, buffer_out_idx;
+assign buffer_in_idx = (Y_write*144) + X_write;
+assign buffer_out_idx = (Y_read*144) + X_read;
+
+assign wren = 1'b0;
+
+
 framebuffer_ram buffer (
 	.data(in),
-	.rdaddress({(Y_out*144) + X_out}[13:0]),
+	.rdaddress(buffer_out_idx),
 	.rdclock(rdclock),
-	.wraddress({(Y_in*144) + X_in}[13:0]),
+	.wraddress(buffer_in_idx),
 	.wrclock(wrclock),
 	.wren(wren),
 	.q(out));
