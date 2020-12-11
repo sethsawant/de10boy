@@ -67,11 +67,6 @@ logic [11:0] tmp12;
 
 // handling 16 bit combo registers
 always_comb begin : REGISTER_INPUTS
-	Z_flag = F[7];
-	N_flag = F[6];
-	H_flag = F[5];
-	C_flag = F[4];
-
 	BC = {B, C};
 	DE = {D, E};
 	HL = {H, L};
@@ -149,7 +144,7 @@ end
 
 `define popOneByte(dst) \
 begin \
-	mem_addr = SP; \
+	mem_addr = SP + 1'b1; \
 	``dst``_new[7:0] = data_in; \
 	``dst``_ld = 1'b1; \
 	SP_new = SP + 1'b1; \
@@ -158,7 +153,7 @@ end
 
 `define pushOneByte(src, byteidx) \
 begin \
-	mem_addr = SP - 1'b1; \
+	mem_addr = SP; \
 	data_out = ``src``[7+byteidx:byteidx]; \
 	mem_wren = 1'b1; \
 	SP_new = SP - 1'b1; \
@@ -177,6 +172,8 @@ begin \
 	N_flag_new = 1'b0; \
 	{H_flag_new, tmp} = A[3:0] + ``src``[3:0]; \
 	{C_flag_new, A_new} = A + src; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
+	F_ld = 1'b1; \
 end
 
 `define ADC(src) \
@@ -187,6 +184,8 @@ begin \
 	N_flag_new = 1'b0; \
 	{H_flag_new, tmp} = A[3:0] + src[3:0] + C_flag; \
 	{C_flag_new, A_new} = A + src + C_flag; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
+	F_ld = 1'b1; \
 end
 
 `define SUB(src) \
@@ -197,6 +196,7 @@ begin \
 	N_flag_new = 1'b1; \
 	H_flag_new = A[3:0] < src[3:0]; \
 	C_flag_new = A < src; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -208,6 +208,7 @@ begin \
 	N_flag_new = 1'b1; \
 	H_flag_new = A[3:0] < (src[3:0] + C_flag); \
 	C_flag_new = A < (src + C_flag); \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -219,6 +220,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b1; \
 	C_flag_new = 1'b0; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -230,6 +232,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = 1'b0; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -241,6 +244,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = 1'b0; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -250,6 +254,7 @@ begin \
 	N_flag_new = 1'b1; \
 	H_flag_new = A[3:0] < src[3:0]; \
 	C_flag_new = A < src; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -260,6 +265,7 @@ begin \
 	Z_flag_new = (``src``_new == 8'h0); \
 	N_flag_new = 1'b0; \
 	{H_flag_new, tmp} = src[3:0] + 1'b1; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -270,6 +276,7 @@ begin \
 	Z_flag_new = (``src``_new == 8'h0); \
 	N_flag_new = 1'b1; \
 	H_flag_new = src[3:0] < 1'b1; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -289,6 +296,7 @@ begin \
 	N_flag_new = 1'b0; \
 	{H_flag_new, tmp12} = dst[11:0] + src[11:0]; \
 	{C_flag_new, ``dst``_new} = dst + src; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -300,6 +308,7 @@ begin \
 	N_flag_new = 1'b0; \
 	{H_flag_new, tmp} = SP[11:0] + src[11:0]; \
 	{C_flag_new, ``dst``_new} = SP + src; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -323,6 +332,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[7]; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -334,6 +344,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[7]; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -345,6 +356,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[0]; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -356,6 +368,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[0]; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -367,6 +380,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[7]; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -378,6 +392,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[0]; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -389,6 +404,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[0]; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -400,6 +416,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = 1'b0; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -409,6 +426,7 @@ begin \
 	A_ld = 1'b1; \
 	N_flag_new = 1'b1; \
 	H_flag_new = 1'b1; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -431,6 +449,7 @@ begin \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b1; \
 	C_flag_new = C_flag; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
 
@@ -2562,9 +2581,9 @@ begin
 		WAIT_SET_FE_1    : Next_state = SET_FE_2;
 		default          : Next_state = FETCH;
 	endcase
-	
+end
 ////////// Assign control signals based on current state /////////////////////////////////////////////////////////////////////////////////
-
+always_comb begin 
 	// Default controls signal values
     {OP8_ld, OP16_ld, OR_ld, SP_ld, PC_ld, A_ld, F_ld, B_ld, C_ld, D_ld, E_ld, H_ld, L_ld, BC_ld, DE_ld, HL_ld}  = 16'b0;
     mem_wren = 1'b0;
@@ -2578,10 +2597,18 @@ begin
 	OP8_new = OP8;
 	OP16_new = OP16;
 
+	Z_flag = F[7];
+	N_flag = F[6];
+	H_flag = F[5];
+	C_flag = F[4];
+
 	Z_flag_new = Z_flag;
 	N_flag_new = N_flag;
 	H_flag_new = H_flag;
 	C_flag_new = C_flag;
+
+	F_new = F;
+	// F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0};
 
 	A_new = A;
 	B_new = B;
@@ -2590,7 +2617,7 @@ begin
 	E_new = E;
 	H_new = H;
 	L_new = L;
-	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0};
+	// F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0};
 
 	BC_new = BC;
 	DE_new = DE;
@@ -2663,7 +2690,7 @@ begin
                         LD_16_1          : `loadRegFromReg(D,OP8)
 /*      RLA      */     RLA_17           : `RL(A)
 /*     JR r8     */     JR_18_0          : `getOneByte(OP8)
-                        JR_18_1          : `ADD_NO_FLAGS(PC,OP8)
+                        JR_18_1          : `ADD_NO_FLAGS(PC,`SEXT16(OP8))
                         JR_18_2          : ;
 /*   ADD HL DE   */     ADD_19_0         : `ADD16(HL,DE)
                         ADD_19_1         : ;
