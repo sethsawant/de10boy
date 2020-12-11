@@ -63,13 +63,13 @@ assign VGA_B = pixelG;
 assign VGA_G = pixelB;
 
 always_comb begin
-    if (~vga_blank) {pixelR, pixelG, pixelB} = {4'd0, 4'd0, 4'd0};
+    if (~vga_blank || DrawX >= 9'd160 || DrawY >= 9'd144) {pixelR, pixelG, pixelB} = {4'd0, 4'd0, 4'd0};
     else begin 
         case (buffer_pixel_out)
-            2'd0 : {pixelR, pixelG, pixelB} = {4'd3, 4'd0, 4'd0};
-            2'd1 : {pixelR, pixelG, pixelB} = {4'd7, 4'd0, 4'd0};
-            2'd2 : {pixelR, pixelG, pixelB} = {4'd11, 4'd0, 4'd0};
-            2'd3 : {pixelR, pixelG, pixelB} = {4'd15, 4'd0, 4'd0};
+            2'd0 : {pixelR, pixelG, pixelB} = {4'd13, 4'd15, 4'd13};
+            2'd1 : {pixelR, pixelG, pixelB} = {4'd9, 4'd11, 4'd9};
+            2'd2 : {pixelR, pixelG, pixelB} = {4'd5, 4'd7, 4'd5};
+            2'd3 : {pixelR, pixelG, pixelB} = {4'd1, 4'd3, 4'd1};
         endcase
     end
 end
