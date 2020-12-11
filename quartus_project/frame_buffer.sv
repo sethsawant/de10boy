@@ -11,7 +11,7 @@ logic [13:0] buffer_in_idx, buffer_out_idx;
 assign buffer_in_idx = (Y_write*144) + X_write;
 assign buffer_out_idx = (Y_read*144) + X_read;
 
-assign wren = 1'b0;
+// assign wren = 1'b0;
 
 
 framebuffer_ram buffer (

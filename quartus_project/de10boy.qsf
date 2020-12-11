@@ -110,6 +110,8 @@ set_global_assignment -name EDA_TEST_BENCH_NAME de10boy_testbench -section_id ed
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id de10boy_testbench
 set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "10 us" -section_id de10boy_testbench
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME test -section_id de10boy_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE testbench.sv -section_id de10boy_testbench
+set_global_assignment -name SYSTEMVERILOG_FILE testbench.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ppu.sv
 set_global_assignment -name SYSTEMVERILOG_FILE frame_buffer.sv
 set_global_assignment -name SYSTEMVERILOG_FILE VGA_controller.sv
@@ -127,5 +129,4 @@ set_global_assignment -name QIP_FILE ram_8k.qip
 set_global_assignment -name QIP_FILE ram_256.qip
 set_global_assignment -name QIP_FILE clock_pll.qip
 set_global_assignment -name QIP_FILE framebuffer_ram.qip
-set_global_assignment -name EDA_TEST_BENCH_FILE testbench.sv -section_id de10boy_testbench
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

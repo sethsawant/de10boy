@@ -20,7 +20,7 @@ module ppu (
 enum logic [1:0] {HBLANK = 2'd0, VBLANK = 2'd1, OAM_SEARCH = 2'd2, ACTIVE_PICTURE = 2'd3} ppu_mode, next_ppu_mode;
 
 logic [16:0] cycles; // number of CPU cycles executed so far
-logic [7:0] line_count; // current line of the frame PPU is currently working on
+logic [7:0] line; // current line of the frame PPU is currently working on
 
 always_ff @ (posedge cpu_clock)
 begin
@@ -37,11 +37,10 @@ end
 // next PPU state logic
 always_comb begin : NEXT_STATE
     next_ppu_mode = ppu_mode;
-    if (cycles >= 17'd65664) next_ppu_mode = VBLANK;
-    else if (cycles < 80) next_ppu_mode = OAM_SEARCH;
-    else if (cycles >= 80 && cycles < 172) next_ppu_mode = ACTIVE_PICTURE;
-    else if (cycles >= 172 && cycles < 204) next_ppu_mode = HBLANK;
-    else if (cycles >= 204 && cycles < 456) next_ppu_mode = ACTIVE_PICTURE;
+    if (cycles > 17'd65664) next_ppu_mode = VBLANK;
+    else if (cycles % 456 < 80) next_ppu_mode = OAM_SEARCH;
+    else if (cycles % 456 >= 80 && cycles % 456 < 172) next_ppu_mode = ACTIVE_PICTURE;
+    else if (cycles % 456 >= 172 && cycles % 456 < 204) next_ppu_mode = HBLANK;
 end
 
 // PPU output settings
@@ -55,6 +54,12 @@ always_comb begin : STATE_OUTPUT
         VBLANK         : vblank = 1'b1;
         default        : ; 
     endcase
+end
+
+always_comb begin : LINE_COUNT
+    if (cycles <= 17'd65664) line = cycles / 9'd456;
+    else line = 9'd0;
+    Y_out = line;
 end
 
 

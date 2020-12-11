@@ -40,9 +40,11 @@ logic ppu_frame_wren;
 logic joypad_int, serial_int, timer_int, lcdc_int, vblank_int;
 
 assign {reset}= ~ (KEY[0]);
-
+assign placeholder = {ppu_data_in, cpu_data_in};
 // // // c0 = 2.1Mhz 
-clock_pll clock_generator (.locked(), .inclk0(Clk), .c0(clock), .c1(memclock)); 
+// clock_pll clock_generator (.locked(), .inclk0(Clk), .c0(clock), .c1(memclock)); 
+assign clock = Clk;
+assign memclock = Clk;
 
 cpu cpu (.clock(clock), .reset(reset), .data_in(cpu_data_in), 
         .data_out(cpu_data_out), .mem_addr(cpu_mem_addr), .mem_wren(cpu_mem_wren));
@@ -71,7 +73,7 @@ always_comb begin
         endcase
     end
 end
-ppu ppu (.data_in(ppu_data_in), .clock(Clk), .cpu_clock(Clk), .reset(reset), .ppu_mem_addr(ppu_mem_addr), 
+ppu ppu (.data_in(ppu_data_in), .clock(Clk), .cpu_clock(clock), .reset(reset), .ppu_mem_addr(ppu_mem_addr), 
         .X_out(ppuX), .Y_out(ppuY), .pixel_out(buffer_pixel_in), .frame_wren(ppu_frame_wren), .vblank(vblank_int), 
         .vram_access(ppu_vram_read_en), .oam_access(ppu_oam_read_en), .ppu_read_mode(ppu_read_mode)); 
 
