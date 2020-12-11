@@ -319,7 +319,7 @@ end
 begin \
 	``src``_new = {src[6:0],C_flag}; \
 	``src``_ld = 1'b1; \
-	Z_flag_new = 1'b0; \
+	Z_flag_new = (``src``_new == 8'h0); \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[7]; \
@@ -330,7 +330,7 @@ end
 begin \
 	``src``_new = {src[6:0],src[7]}; \
 	``src``_ld = 1'b1; \
-	Z_flag_new = 1'b0; \
+	Z_flag_new = (``src``_new == 8'h0); \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[7]; \
@@ -341,7 +341,7 @@ end
 begin \
 	``src``_new = {C_flag,src[7:1]}; \
 	``src``_ld = 1'b1; \
-	Z_flag_new = 1'b0; \
+	Z_flag_new = (``src``_new == 8'h0); \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[0]; \
@@ -352,10 +352,54 @@ end
 begin \
 	``src``_new = {src[0],src[7:1]}; \
 	``src``_ld = 1'b1; \
-	Z_flag_new = 1'b0; \
+	Z_flag_new = (``src``_new == 8'h0); \
 	N_flag_new = 1'b0; \
 	H_flag_new = 1'b0; \
 	C_flag_new = src[0]; \
+	F_ld = 1'b1; \
+end
+
+`define SLA(src) \
+begin \
+	``src``_new = {src[6:0],1'b0}; \
+	``src``_ld = 1'b1; \
+	Z_flag_new = (``src``_new == 8'h0); \
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b0; \
+	C_flag_new = src[7]; \
+	F_ld = 1'b1; \
+end
+
+`define SRA(src) \
+begin \
+	``src``_new = {src[7],src[7:1]}; \
+	``src``_ld = 1'b1; \
+	Z_flag_new = (``src``_new == 8'h0); \
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b0; \
+	C_flag_new = src[0]; \
+	F_ld = 1'b1; \
+end
+
+`define SRL(src) \
+begin \
+	``src``_new = {1'b0,src[7:1]}; \
+	``src``_ld = 1'b1; \
+	Z_flag_new = (``src``_new == 8'h0); \
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b0; \
+	C_flag_new = src[0]; \
+	F_ld = 1'b1; \
+end
+
+`define SWAP(src) \
+begin \
+	``src``_new = {src[3:0],src[7:4]}; \
+	``src``_ld = 1'b1; \
+	Z_flag_new = (``src``_new == 8'h0); \
+	N_flag_new = 1'b0; \
+	H_flag_new = 1'b0; \
+	C_flag_new = 1'b0; \
 	F_ld = 1'b1; \
 end
 
@@ -368,6 +412,17 @@ begin \
 	F_ld = 1'b1; \
 end
 
+`define RES(bit_index,src) \
+begin \
+	``src``_new = src & ~(8'b00000001 << bit_index); \
+	``src``_ld = 1'b1; \
+end
+
+`define SET(bit_index,src) \
+begin \
+	``src``_new = src | (8'b00000001 << bit_index); \
+	``src``_ld = 1'b1; \
+end
 
 // checks the bit of the source signal at the specified index
 `define BIT(bit_index,src) \
@@ -2931,13 +2986,13 @@ begin
                         RET_D8_2         : `popOneByte(OP16) // pop lower byte into lower byte of OP16 
                         RET_D8_3         : `popOneByte(OP8) // pop top byte into OP8                   
                         RET_D8_4         : begin PC_new = {OP8,OP16[7:0]}; PC_ld = 1'b1; end // write PC
-/*      RETI     */     RETI_D9_0        : ;
+/*      RETI     */     RETI_D9_0        : ; // TODO
                         RETI_D9_1        : ;
                         RETI_D9_2        : ;
                         RETI_D9_3        : ;
-/*    JP C a16   */     JP_DA_0          : ;
-                        JP_DA_1          : ;
-                        JP_DA_2          : ;
+/*    JP C a16   */     JP_DA_0          : `getLowByte(OP16)       
+                        JP_DA_1          : `getHighByte(OP16)      
+                        JP_DA_2          : `loadRegFromReg(PC,OP16)
                         JP_DA_3          : ;
 /*   ILLEGAL_DB  */     ILLEGAL_DB_DB    : ;
 /*   CALL C a16  */     CALL_DC_0        : `getLowByte(OP16) // get address                          
@@ -3032,86 +3087,86 @@ begin
 
 /////////////////////// PREFIX OPS /////////
 
-/*     RLC B     */     RLC_00           : ;
-/*     RLC C     */     RLC_01           : ;
-/*     RLC D     */     RLC_02           : ;
-/*     RLC E     */     RLC_03           : ;
-/*     RLC H     */     RLC_04           : ;
-/*     RLC L     */     RLC_05           : ;
-/*    RLC (HL)   */     RLC_06_0         : ;
-                        RLC_06_1         : ;
-                        RLC_06_2         : ;
-/*     RLC A     */     RLC_07           : ;
-/*     RRC B     */     RRC_08           : ;
-/*     RRC C     */     RRC_09           : ;
-/*     RRC D     */     RRC_0A           : ;
-/*     RRC E     */     RRC_0B           : ;
-/*     RRC H     */     RRC_0C           : ;
-/*     RRC L     */     RRC_0D           : ;
-/*    RRC (HL)   */     RRC_0E_0         : ;
-                        RRC_0E_1         : ;
-                        RRC_0E_2         : ;
-/*     RRC A     */     RRC_0F           : ;
-/*      RL B     */     RL_10            : ;
-/*      RL C     */     RL_11            : ;
-/*      RL D     */     RL_12            : ;
-/*      RL E     */     RL_13            : ;
-/*      RL H     */     RL_14            : ;
-/*      RL L     */     RL_15            : ;
-/*    RL (HL)    */     RL_16_0          : ;
-                        RL_16_1          : ;
-                        RL_16_2          : ;
-/*      RL A     */     RL_17            : ;
-/*      RR B     */     RR_18            : ;
-/*      RR C     */     RR_19            : ;
-/*      RR D     */     RR_1A            : ;
-/*      RR E     */     RR_1B            : ;
-/*      RR H     */     RR_1C            : ;
-/*      RR L     */     RR_1D            : ;
-/*    RR (HL)    */     RR_1E_0          : ;
-                        RR_1E_1          : ;
-                        RR_1E_2          : ;
-/*      RR A     */     RR_1F            : ;
-/*     SLA B     */     SLA_20           : ;
-/*     SLA C     */     SLA_21           : ;
-/*     SLA D     */     SLA_22           : ;
-/*     SLA E     */     SLA_23           : ;
-/*     SLA H     */     SLA_24           : ;
-/*     SLA L     */     SLA_25           : ;
-/*    SLA (HL)   */     SLA_26_0         : ;
-                        SLA_26_1         : ;
-                        SLA_26_2         : ;
-/*     SLA A     */     SLA_27           : ;
-/*     SRA B     */     SRA_28           : ;
-/*     SRA C     */     SRA_29           : ;
-/*     SRA D     */     SRA_2A           : ;
-/*     SRA E     */     SRA_2B           : ;
-/*     SRA H     */     SRA_2C           : ;
-/*     SRA L     */     SRA_2D           : ;
-/*    SRA (HL)   */     SRA_2E_0         : ;
-                        SRA_2E_1         : ;
-                        SRA_2E_2         : ;
-/*     SRA A     */     SRA_2F           : ;
-/*     SWAP B    */     SWAP_30          : ;
-/*     SWAP C    */     SWAP_31          : ;
-/*     SWAP D    */     SWAP_32          : ;
-/*     SWAP E    */     SWAP_33          : ;
-/*     SWAP H    */     SWAP_34          : ;
-/*     SWAP L    */     SWAP_35          : ;
-/*   SWAP (HL)   */     SWAP_36_0        : ;
-                        SWAP_36_1        : ;
-                        SWAP_36_2        : ;
-/*     SWAP A    */     SWAP_37          : ;
-/*     SRL B     */     SRL_38           : ;
-/*     SRL C     */     SRL_39           : ;
-/*     SRL D     */     SRL_3A           : ;
-/*     SRL E     */     SRL_3B           : ;
-/*     SRL H     */     SRL_3C           : ;
-/*     SRL L     */     SRL_3D           : ;
-/*    SRL (HL)   */     SRL_3E_0         : ;
-                        SRL_3E_1         : ;
-                        SRL_3E_2         : ;
-/*     SRL A     */     SRL_3F           : ;
+/*     RLC B     */     RLC_00           : `RLC(B)                     
+/*     RLC C     */     RLC_01           : `RLC(C)                     
+/*     RLC D     */     RLC_02           : `RLC(D)                     
+/*     RLC E     */     RLC_03           : `RLC(E)                     
+/*     RLC H     */     RLC_04           : `RLC(H)                     
+/*     RLC L     */     RLC_05           : `RLC(L)                     
+/*    RLC (HL)   */     RLC_06_0         : `readMemFromRegAddr(OP8,HL) 
+                        RLC_06_1         : `RLC(OP8)                   
+                        RLC_06_2         : `writeToMemAtRegAddr(HL,OP8)
+/*     RLC A     */     RLC_07           : `RLC(A)                     
+/*     RRC B     */     RRC_08           : `RRC(B)                     
+/*     RRC C     */     RRC_09           : `RRC(C)                     
+/*     RRC D     */     RRC_0A           : `RRC(D)                     
+/*     RRC E     */     RRC_0B           : `RRC(E)                     
+/*     RRC H     */     RRC_0C           : `RRC(H)                     
+/*     RRC L     */     RRC_0D           : `RRC(L)                     
+/*    RRC (HL)   */     RRC_0E_0         : `readMemFromRegAddr(OP8,HL) 
+                        RRC_0E_1         : `RRC(OP8)                   
+                        RRC_0E_2         : `writeToMemAtRegAddr(HL,OP8)
+/*     RRC A     */     RRC_0F           : `RRC(A)                     
+/*      RL B     */     RL_10            : `RL(B)                      
+/*      RL C     */     RL_11            : `RL(C)                      
+/*      RL D     */     RL_12            : `RL(D)                      
+/*      RL E     */     RL_13            : `RL(E)                      
+/*      RL H     */     RL_14            : `RL(H)                      
+/*      RL L     */     RL_15            : `RL(L)                      
+/*    RL (HL)    */     RL_16_0          : `readMemFromRegAddr(OP8,HL) 
+                        RL_16_1          : `RL(OP8)                    
+                        RL_16_2          : `writeToMemAtRegAddr(HL,OP8)
+/*      RL A     */     RL_17            : `RL(A)                      
+/*      RR B     */     RR_18            : `RR(B)                     
+/*      RR C     */     RR_19            : `RR(C)                     
+/*      RR D     */     RR_1A            : `RR(D)                     
+/*      RR E     */     RR_1B            : `RR(E)                     
+/*      RR H     */     RR_1C            : `RR(H)                     
+/*      RR L     */     RR_1D            : `RR(L)                     
+/*    RR (HL)    */     RR_1E_0          : `readMemFromRegAddr(OP8,HL) 
+                        RR_1E_1          : `RR(OP8)                   
+                        RR_1E_2          : `writeToMemAtRegAddr(HL,OP8)
+/*      RR A     */     RR_1F            : `RR(A)                     
+/*     SLA B     */     SLA_20           : `SLA(B)                      
+/*     SLA C     */     SLA_21           : `SLA(C)                      
+/*     SLA D     */     SLA_22           : `SLA(D)                      
+/*     SLA E     */     SLA_23           : `SLA(E)                      
+/*     SLA H     */     SLA_24           : `SLA(H)                      
+/*     SLA L     */     SLA_25           : `SLA(L)                      
+/*    SLA (HL)   */     SLA_26_0         : `readMemFromRegAddr(OP8,HL) 
+                        SLA_26_1         : `SLA(OP8)                    
+                        SLA_26_2         : `writeToMemAtRegAddr(HL,OP8)
+/*     SLA A     */     SLA_27           : `SLA(A)                      
+/*     SRA B     */     SRA_28           : `SRA(B)                     
+/*     SRA C     */     SRA_29           : `SRA(C)                     
+/*     SRA D     */     SRA_2A           : `SRA(D)                     
+/*     SRA E     */     SRA_2B           : `SRA(E)                     
+/*     SRA H     */     SRA_2C           : `SRA(H)                     
+/*     SRA L     */     SRA_2D           : `SRA(L)                     
+/*    SRA (HL)   */     SRA_2E_0         : `readMemFromRegAddr(OP8,HL) 
+                        SRA_2E_1         : `SRA(OP8)                   
+                        SRA_2E_2         : `writeToMemAtRegAddr(HL,OP8)
+/*     SRA A     */     SRA_2F           : `SWAP(A)                     
+/*     SWAP B    */     SWAP_30          : `SWAP(B)                     
+/*     SWAP C    */     SWAP_31          : `SWAP(C)                     
+/*     SWAP D    */     SWAP_32          : `SWAP(D)                     
+/*     SWAP E    */     SWAP_33          : `SWAP(E)                     
+/*     SWAP H    */     SWAP_34          : `SWAP(H)                     
+/*     SWAP L    */     SWAP_35          : `SWAP(L)                     
+/*   SWAP (HL)   */     SWAP_36_0        : `readMemFromRegAddr(OP8,HL) 
+                        SWAP_36_1        : `SWAP(OP8)                   
+                        SWAP_36_2        : `writeToMemAtRegAddr(HL,OP8)
+/*     SWAP A    */     SWAP_37          : `SWAP(A)                     
+/*     SRL B     */     SRL_38           : `SRL(B)                     
+/*     SRL C     */     SRL_39           : `SRL(C)                     
+/*     SRL D     */     SRL_3A           : `SRL(D)                     
+/*     SRL E     */     SRL_3B           : `SRL(E)                     
+/*     SRL H     */     SRL_3C           : `SRL(H)                     
+/*     SRL L     */     SRL_3D           : `SRL(L)                     
+/*    SRL (HL)   */     SRL_3E_0         : `readMemFromRegAddr(OP8,HL) 
+                        SRL_3E_1         : `SRL(OP8)                   
+                        SRL_3E_2         : `writeToMemAtRegAddr(HL,OP8)
+/*     SRL A     */     SRL_3F           : `SRL(A)                     
 /*    BIT 0 B    */     BIT_40           : `BIT(0,B)         
 /*    BIT 0 C    */     BIT_41           : `BIT(0,C)         
 /*    BIT 0 D    */     BIT_42           : `BIT(0,D)         
@@ -3183,167 +3238,167 @@ begin
 /*    BIT 7 L    */     BIT_7D           : `BIT(7,L)         
 /*   BIT 7 (HL)  */     BIT_7E_0         : `getOneByte(OP8)	
                         BIT_7E_1         : `BIT(7,OP8)       
-/*    BIT 7 A    */     BIT_7F           : `BIT(7,A)         
-/*    RES 0 B    */     RES_80           : ;
-/*    RES 0 C    */     RES_81           : ;
-/*    RES 0 D    */     RES_82           : ;
-/*    RES 0 E    */     RES_83           : ;
-/*    RES 0 H    */     RES_84           : ;
-/*    RES 0 L    */     RES_85           : ;
-/*   RES 0 (HL)  */     RES_86_0         : ;
-                        RES_86_1         : ;
-                        RES_86_2         : ;
-/*    RES 0 A    */     RES_87           : ;
-/*    RES 1 B    */     RES_88           : ;
-/*    RES 1 C    */     RES_89           : ;
-/*    RES 1 D    */     RES_8A           : ;
-/*    RES 1 E    */     RES_8B           : ;
-/*    RES 1 H    */     RES_8C           : ;
-/*    RES 1 L    */     RES_8D           : ;
-/*   RES 1 (HL)  */     RES_8E_0         : ;
-                        RES_8E_1         : ;
-                        RES_8E_2         : ;
-/*    RES 1 A    */     RES_8F           : ;
-/*    RES 2 B    */     RES_90           : ;
-/*    RES 2 C    */     RES_91           : ;
-/*    RES 2 D    */     RES_92           : ;
-/*    RES 2 E    */     RES_93           : ;
-/*    RES 2 H    */     RES_94           : ;
-/*    RES 2 L    */     RES_95           : ;
-/*   RES 2 (HL)  */     RES_96_0         : ;
-                        RES_96_1         : ;
-                        RES_96_2         : ;
-/*    RES 2 A    */     RES_97           : ;
-/*    RES 3 B    */     RES_98           : ;
-/*    RES 3 C    */     RES_99           : ;
-/*    RES 3 D    */     RES_9A           : ;
-/*    RES 3 E    */     RES_9B           : ;
-/*    RES 3 H    */     RES_9C           : ;
-/*    RES 3 L    */     RES_9D           : ;
-/*   RES 3 (HL)  */     RES_9E_0         : ;
-                        RES_9E_1         : ;
-                        RES_9E_2         : ;
-/*    RES 3 A    */     RES_9F           : ;
-/*    RES 4 B    */     RES_A0           : ;
-/*    RES 4 C    */     RES_A1           : ;
-/*    RES 4 D    */     RES_A2           : ;
-/*    RES 4 E    */     RES_A3           : ;
-/*    RES 4 H    */     RES_A4           : ;
-/*    RES 4 L    */     RES_A5           : ;
-/*   RES 4 (HL)  */     RES_A6_0         : ;
-                        RES_A6_1         : ;
-                        RES_A6_2         : ;
-/*    RES 4 A    */     RES_A7           : ;
-/*    RES 5 B    */     RES_A8           : ;
-/*    RES 5 C    */     RES_A9           : ;
-/*    RES 5 D    */     RES_AA           : ;
-/*    RES 5 E    */     RES_AB           : ;
-/*    RES 5 H    */     RES_AC           : ;
-/*    RES 5 L    */     RES_AD           : ;
-/*   RES 5 (HL)  */     RES_AE_0         : ;
-                        RES_AE_1         : ;
-                        RES_AE_2         : ;
-/*    RES 5 A    */     RES_AF           : ;
-/*    RES 6 B    */     RES_B0           : ;
-/*    RES 6 C    */     RES_B1           : ;
-/*    RES 6 D    */     RES_B2           : ;
-/*    RES 6 E    */     RES_B3           : ;
-/*    RES 6 H    */     RES_B4           : ;
-/*    RES 6 L    */     RES_B5           : ;
-/*   RES 6 (HL)  */     RES_B6_0         : ;
-                        RES_B6_1         : ;
-                        RES_B6_2         : ;
-/*    RES 6 A    */     RES_B7           : ;
-/*    RES 7 B    */     RES_B8           : ;
-/*    RES 7 C    */     RES_B9           : ;
-/*    RES 7 D    */     RES_BA           : ;
-/*    RES 7 E    */     RES_BB           : ;
-/*    RES 7 H    */     RES_BC           : ;
-/*    RES 7 L    */     RES_BD           : ;
-/*   RES 7 (HL)  */     RES_BE_0         : ;
-                        RES_BE_1         : ;
-                        RES_BE_2         : ;
-/*    RES 7 A    */     RES_BF           : ;
-/*    SET 0 B    */     SET_C0           : ;
-/*    SET 0 C    */     SET_C1           : ;
-/*    SET 0 D    */     SET_C2           : ;
-/*    SET 0 E    */     SET_C3           : ;
-/*    SET 0 H    */     SET_C4           : ;
-/*    SET 0 L    */     SET_C5           : ;
-/*   SET 0 (HL)  */     SET_C6_0         : ;
-                        SET_C6_1         : ;
-                        SET_C6_2         : ;
-/*    SET 0 A    */     SET_C7           : ;
-/*    SET 1 B    */     SET_C8           : ;
-/*    SET 1 C    */     SET_C9           : ;
-/*    SET 1 D    */     SET_CA           : ;
-/*    SET 1 E    */     SET_CB           : ;
-/*    SET 1 H    */     SET_CC           : ;
-/*    SET 1 L    */     SET_CD           : ;
-/*   SET 1 (HL)  */     SET_CE_0         : ;
-                        SET_CE_1         : ;
-                        SET_CE_2         : ;
-/*    SET 1 A    */     SET_CF           : ;
-/*    SET 2 B    */     SET_D0           : ;
-/*    SET 2 C    */     SET_D1           : ;
-/*    SET 2 D    */     SET_D2           : ;
-/*    SET 2 E    */     SET_D3           : ;
-/*    SET 2 H    */     SET_D4           : ;
-/*    SET 2 L    */     SET_D5           : ;
-/*   SET 2 (HL)  */     SET_D6_0         : ;
-                        SET_D6_1         : ;
-                        SET_D6_2         : ;
-/*    SET 2 A    */     SET_D7           : ;
-/*    SET 3 B    */     SET_D8           : ;
-/*    SET 3 C    */     SET_D9           : ;
-/*    SET 3 D    */     SET_DA           : ;
-/*    SET 3 E    */     SET_DB           : ;
-/*    SET 3 H    */     SET_DC           : ;
-/*    SET 3 L    */     SET_DD           : ;
-/*   SET 3 (HL)  */     SET_DE_0         : ;
-                        SET_DE_1         : ;
-                        SET_DE_2         : ;
-/*    SET 3 A    */     SET_DF           : ;
-/*    SET 4 B    */     SET_E0           : ;
-/*    SET 4 C    */     SET_E1           : ;
-/*    SET 4 D    */     SET_E2           : ;
-/*    SET 4 E    */     SET_E3           : ;
-/*    SET 4 H    */     SET_E4           : ;
-/*    SET 4 L    */     SET_E5           : ;
-/*   SET 4 (HL)  */     SET_E6_0         : ;
-                        SET_E6_1         : ;
-                        SET_E6_2         : ;
-/*    SET 4 A    */     SET_E7           : ;
-/*    SET 5 B    */     SET_E8           : ;
-/*    SET 5 C    */     SET_E9           : ;
-/*    SET 5 D    */     SET_EA           : ;
-/*    SET 5 E    */     SET_EB           : ;
-/*    SET 5 H    */     SET_EC           : ;
-/*    SET 5 L    */     SET_ED           : ;
-/*   SET 5 (HL)  */     SET_EE_0         : ;
-                        SET_EE_1         : ;
-                        SET_EE_2         : ;
-/*    SET 5 A    */     SET_EF           : ;
-/*    SET 6 B    */     SET_F0           : ;
-/*    SET 6 C    */     SET_F1           : ;
-/*    SET 6 D    */     SET_F2           : ;
-/*    SET 6 E    */     SET_F3           : ;
-/*    SET 6 H    */     SET_F4           : ;
-/*    SET 6 L    */     SET_F5           : ;
-/*   SET 6 (HL)  */     SET_F6_0         : ;
-                        SET_F6_1         : ;
-                        SET_F6_2         : ;
-/*    SET 6 A    */     SET_F7           : ;
-/*    SET 7 B    */     SET_F8           : ;
-/*    SET 7 C    */     SET_F9           : ;
-/*    SET 7 D    */     SET_FA           : ;
-/*    SET 7 E    */     SET_FB           : ;
-/*    SET 7 H    */     SET_FC           : ;
-/*    SET 7 L    */     SET_FD           : ;
-/*   SET 7 (HL)  */     SET_FE_0         : ;
-                        SET_FE_1         : ;
-                        SET_FE_2         : ;
-/*    SET 7 A    */     SET_FF           : ;
+/*    BIT 7 A    */     BIT_7F           : `BIT(7,A)                     
+/*    RES 0 B    */     RES_80           : `RES(0,B)                   
+/*    RES 0 C    */     RES_81           : `RES(0,C)                   
+/*    RES 0 D    */     RES_82           : `RES(0,D)                   
+/*    RES 0 E    */     RES_83           : `RES(0,E)                   
+/*    RES 0 H    */     RES_84           : `RES(0,H)                   
+/*    RES 0 L    */     RES_85           : `RES(0,L)                   
+/*   RES 0 (HL)  */     RES_86_0         : `readMemFromRegAddr(OP8,HL)  
+                        RES_86_1         : `RES(0,L)                                       
+                        RES_86_2         : `writeToMemAtRegAddr(HL,OP8)       
+/*    RES 0 A    */     RES_87           : `RES(0,A)                   
+/*    RES 1 B    */     RES_88           : `RES(1,B)                   
+/*    RES 1 C    */     RES_89           : `RES(1,C)                   
+/*    RES 1 D    */     RES_8A           : `RES(1,D)                   
+/*    RES 1 E    */     RES_8B           : `RES(1,E)                   
+/*    RES 1 H    */     RES_8C           : `RES(1,H)                   
+/*    RES 1 L    */     RES_8D           : `RES(1,L)                   
+/*   RES 1 (HL)  */     RES_8E_0         : `readMemFromRegAddr(OP8,HL) 
+                        RES_8E_1         : `RES(1,L)                   
+                        RES_8E_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    RES 1 A    */     RES_8F           : `RES(1,A)                   
+/*    RES 2 B    */     RES_90           : `RES(2,B)                   
+/*    RES 2 C    */     RES_91           : `RES(2,C)                   
+/*    RES 2 D    */     RES_92           : `RES(2,D)                   
+/*    RES 2 E    */     RES_93           : `RES(2,E)                   
+/*    RES 2 H    */     RES_94           : `RES(2,H)                   
+/*    RES 2 L    */     RES_95           : `RES(2,L)                   
+/*   RES 2 (HL)  */     RES_96_0         : `readMemFromRegAddr(OP8,HL) 
+                        RES_96_1         : `RES(2,L)                   
+                        RES_96_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    RES 2 A    */     RES_97           : `RES(2,A)                   
+/*    RES 3 B    */     RES_98           : `RES(3,B)                   
+/*    RES 3 C    */     RES_99           : `RES(3,C)                   
+/*    RES 3 D    */     RES_9A           : `RES(3,D)                   
+/*    RES 3 E    */     RES_9B           : `RES(3,E)                   
+/*    RES 3 H    */     RES_9C           : `RES(3,H)                   
+/*    RES 3 L    */     RES_9D           : `RES(3,L)                   
+/*   RES 3 (HL)  */     RES_9E_0         : `readMemFromRegAddr(OP8,HL) 
+                        RES_9E_1         : `RES(3,L)                   
+                        RES_9E_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    RES 3 A    */     RES_9F           : `RES(3,A)                   
+/*    RES 4 B    */     RES_A0           : `RES(4,B)                   
+/*    RES 4 C    */     RES_A1           : `RES(4,C)                   
+/*    RES 4 D    */     RES_A2           : `RES(4,D)                   
+/*    RES 4 E    */     RES_A3           : `RES(4,E)                   
+/*    RES 4 H    */     RES_A4           : `RES(4,H)                   
+/*    RES 4 L    */     RES_A5           : `RES(4,L)                   
+/*   RES 4 (HL)  */     RES_A6_0         : `readMemFromRegAddr(OP8,HL) 
+                        RES_A6_1         : `RES(4,L)                   
+                        RES_A6_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    RES 4 A    */     RES_A7           : `RES(4,A)                   
+/*    RES 5 B    */     RES_A8           : `RES(5,B)                   
+/*    RES 5 C    */     RES_A9           : `RES(5,C)                   
+/*    RES 5 D    */     RES_AA           : `RES(5,D)                   
+/*    RES 5 E    */     RES_AB           : `RES(5,E)                   
+/*    RES 5 H    */     RES_AC           : `RES(5,H)                   
+/*    RES 5 L    */     RES_AD           : `RES(5,L)                   
+/*   RES 5 (HL)  */     RES_AE_0         : `readMemFromRegAddr(OP8,HL) 
+                        RES_AE_1         : `RES(5,L)                   
+                        RES_AE_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    RES 5 A    */     RES_AF           : `RES(5,A)                   
+/*    RES 6 B    */     RES_B0           : `RES(6,B)                   
+/*    RES 6 C    */     RES_B1           : `RES(6,C)                   
+/*    RES 6 D    */     RES_B2           : `RES(6,D)                   
+/*    RES 6 E    */     RES_B3           : `RES(6,E)                   
+/*    RES 6 H    */     RES_B4           : `RES(6,H)                   
+/*    RES 6 L    */     RES_B5           : `RES(6,L)                   
+/*   RES 6 (HL)  */     RES_B6_0         : `readMemFromRegAddr(OP8,HL) 
+                        RES_B6_1         : `RES(6,L)                   
+                        RES_B6_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    RES 6 A    */     RES_B7           : `RES(6,A)                   
+/*    RES 7 B    */     RES_B8           : `RES(7,B)                   
+/*    RES 7 C    */     RES_B9           : `RES(7,C)                   
+/*    RES 7 D    */     RES_BA           : `RES(7,D)                   
+/*    RES 7 E    */     RES_BB           : `RES(7,E)                   
+/*    RES 7 H    */     RES_BC           : `RES(7,H)                   
+/*    RES 7 L    */     RES_BD           : `RES(7,L)                   
+/*   RES 7 (HL)  */     RES_BE_0         : `readMemFromRegAddr(OP8,HL) 
+                        RES_BE_1         : `RES(7,L)                   
+                        RES_BE_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    RES 7 A    */     RES_BF           : `RES(7,A)                   
+/*    SET 0 B    */     SET_C0           : `SET(0,B)                   
+/*    SET 0 C    */     SET_C1           : `SET(0,C)                   
+/*    SET 0 D    */     SET_C2           : `SET(0,D)                   
+/*    SET 0 E    */     SET_C3           : `SET(0,E)                   
+/*    SET 0 H    */     SET_C4           : `SET(0,H)                   
+/*    SET 0 L    */     SET_C5           : `SET(0,L)                   
+/*   SET 0 (HL)  */     SET_C6_0         : `readMemFromRegAddr(OP8,HL) 
+                        SET_C6_1         : `SET(0,L)                   
+                        SET_C6_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    SET 0 A    */     SET_C7           : `SET(0,A)                   
+/*    SET 1 B    */     SET_C8           : `SET(1,B)                   
+/*    SET 1 C    */     SET_C9           : `SET(1,C)                   
+/*    SET 1 D    */     SET_CA           : `SET(1,D)                   
+/*    SET 1 E    */     SET_CB           : `SET(1,E)                   
+/*    SET 1 H    */     SET_CC           : `SET(1,H)                   
+/*    SET 1 L    */     SET_CD           : `SET(1,L)                   
+/*   SET 1 (HL)  */     SET_CE_0         : `readMemFromRegAddr(OP8,HL) 
+                        SET_CE_1         : `SET(1,L)                   
+                        SET_CE_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    SET 1 A    */     SET_CF           : `SET(1,A)                   
+/*    SET 2 B    */     SET_D0           : `SET(2,B)                   
+/*    SET 2 C    */     SET_D1           : `SET(2,C)                   
+/*    SET 2 D    */     SET_D2           : `SET(2,D)                   
+/*    SET 2 E    */     SET_D3           : `SET(2,E)                   
+/*    SET 2 H    */     SET_D4           : `SET(2,H)                   
+/*    SET 2 L    */     SET_D5           : `SET(2,L)                   
+/*   SET 2 (HL)  */     SET_D6_0         : `readMemFromRegAddr(OP8,HL) 
+                        SET_D6_1         : `SET(2,L)                   
+                        SET_D6_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    SET 2 A    */     SET_D7           : `SET(2,A)                   
+/*    SET 3 B    */     SET_D8           : `SET(3,B)                   
+/*    SET 3 C    */     SET_D9           : `SET(3,C)                   
+/*    SET 3 D    */     SET_DA           : `SET(3,D)                   
+/*    SET 3 E    */     SET_DB           : `SET(3,E)                   
+/*    SET 3 H    */     SET_DC           : `SET(3,H)                   
+/*    SET 3 L    */     SET_DD           : `SET(3,L)                   
+/*   SET 3 (HL)  */     SET_DE_0         : `readMemFromRegAddr(OP8,HL) 
+                        SET_DE_1         : `SET(3,L)                   
+                        SET_DE_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    SET 3 A    */     SET_DF           : `SET(3,A)                   
+/*    SET 4 B    */     SET_E0           : `SET(4,B)                   
+/*    SET 4 C    */     SET_E1           : `SET(4,C)                   
+/*    SET 4 D    */     SET_E2           : `SET(4,D)                   
+/*    SET 4 E    */     SET_E3           : `SET(4,E)                   
+/*    SET 4 H    */     SET_E4           : `SET(4,H)                   
+/*    SET 4 L    */     SET_E5           : `SET(4,L)                   
+/*   SET 4 (HL)  */     SET_E6_0         : `readMemFromRegAddr(OP8,HL) 
+                        SET_E6_1         : `SET(4,L)                   
+                        SET_E6_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    SET 4 A    */     SET_E7           : `SET(4,A)                   
+/*    SET 5 B    */     SET_E8           : `SET(5,B)                   
+/*    SET 5 C    */     SET_E9           : `SET(5,C)                   
+/*    SET 5 D    */     SET_EA           : `SET(5,D)                   
+/*    SET 5 E    */     SET_EB           : `SET(5,E)                   
+/*    SET 5 H    */     SET_EC           : `SET(5,H)                   
+/*    SET 5 L    */     SET_ED           : `SET(5,L)                   
+/*   SET 5 (HL)  */     SET_EE_0         : `readMemFromRegAddr(OP8,HL) 
+                        SET_EE_1         : `SET(5,L)                   
+                        SET_EE_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    SET 5 A    */     SET_EF           : `SET(5,A)                   
+/*    SET 6 B    */     SET_F0           : `SET(6,B)                   
+/*    SET 6 C    */     SET_F1           : `SET(6,C)                   
+/*    SET 6 D    */     SET_F2           : `SET(6,D)                   
+/*    SET 6 E    */     SET_F3           : `SET(6,E)                   
+/*    SET 6 H    */     SET_F4           : `SET(6,H)                   
+/*    SET 6 L    */     SET_F5           : `SET(6,L)                   
+/*   SET 6 (HL)  */     SET_F6_0         : `readMemFromRegAddr(OP8,HL) 
+                        SET_F6_1         : `SET(6,L)                   
+                        SET_F6_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    SET 6 A    */     SET_F7           : `SET(6,A)                   
+/*    SET 7 B    */     SET_F8           : `SET(7,B)                   
+/*    SET 7 C    */     SET_F9           : `SET(7,C)                   
+/*    SET 7 D    */     SET_FA           : `SET(7,D)                   
+/*    SET 7 E    */     SET_FB           : `SET(7,E)                   
+/*    SET 7 H    */     SET_FC           : `SET(7,H)                   
+/*    SET 7 L    */     SET_FD           : `SET(7,L)                   
+/*   SET 7 (HL)  */     SET_FE_0         : `readMemFromRegAddr(OP8,HL) 
+                        SET_FE_1         : `SET(7,L)                   
+                        SET_FE_2         : `writeToMemAtRegAddr(HL,OP8)
+/*    SET 7 A    */     SET_FF           : `SET(7,A)                   
 						default          : ;
 	endcase
 end 
