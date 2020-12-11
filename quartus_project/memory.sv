@@ -110,13 +110,14 @@ always_comb begin : MEMORY_MAP
 	// video RAM
 	if (cpu_addr >= 16'h8000 && cpu_addr <= 16'h9FFF) 
 		begin 
+			video_ram_addr = cpu_addr[12:0];
+			video_ram_wren = cpu_wren;
 			if (ppu_vram_read_en) cpu_data_out = 8'hFF; // if PPU is reading the VRAM, block CPU
 			else 
 			begin // otherwise grant control to CPU
 				cpu_data_out = video_ram_out; 
 				video_ram_in = cpu_data_in; 
-				video_ram_addr = cpu_addr[12:0];
-				video_ram_wren = cpu_wren;
+
 			end
 		end
 
