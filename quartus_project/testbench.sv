@@ -74,11 +74,15 @@ reset = 1'b1;
 
 force gb.cpu.PC_new = 16'h000c;
 force gb.cpu.PC_ld = 1'b1;
+force gb.cpu.SP_new = 16'hFFFE;
+force gb.cpu.SP_ld = 1'b1;
 #40
 force gb.cpu.PC_new = 16'h000d;
 #20
 release gb.cpu.PC_new;
 release gb.cpu.PC_ld;
+release gb.cpu.SP_new;
+release gb.cpu.SP_ld;
 
 
 if (ErrorCnt == 0)

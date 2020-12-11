@@ -15,7 +15,7 @@ module memory (
 
 logic [7:0] boot_rom_out, cart_rom_out; // wires for multiplexing memory
 logic work_ram_wren, video_ram_wren, external_ram_wren, oam_wren, high_ram_wren;  // enables writing to RAM
-logic [12:0] video_ram_addr;
+logic [12:0] video_ram_rdaddr;
 logic [7:0] oam_addr;
 logic [7:0] work_ram_in, video_ram_in, external_ram_in, oam_in, high_ram_in;
 logic [7:0] work_ram_out, video_ram_out, external_ram_out, oam_out, high_ram_out;
@@ -33,8 +33,9 @@ cart_rom cart_rom_inst ( // Game Pak ROM (32 KB)
 	.q ( cart_rom_out )
 	);
 
-ram_8k video_ram ( // Game Boy's internal video RAM (8 KB)
-	.address ( video_ram_addr[12:0] ),
+ram_8k_2port video_ram ( // Game Boy's internal video RAM (8 KB)
+	.rdaddress ( video_ram_rdaddr[12:0] ),
+	.wraddress ( cpu_addr[12:0] ),
 	.clock ( clock ),
 	.data ( video_ram_in ),
 	.wren ( video_ram_wren ),
@@ -76,7 +77,7 @@ ram_256 high_ram ( // high RAM (HRAM) (127 B only are used)
 always_comb begin : MEMORY_MAP
 
 	// video_ram_in = ppu_data_in; // by default ppu has VRAM control
-	video_ram_addr = ppu_addr[12:0];
+	video_ram_rdaddr = ppu_addr[12:0];
 
 	// oam_in = ppu_data_in; // by default ppu has OAM control
 	oam_addr = ppu_addr[7:0];
@@ -110,11 +111,11 @@ always_comb begin : MEMORY_MAP
 	// video RAM
 	if (cpu_addr >= 16'h8000 && cpu_addr <= 16'h9FFF) 
 		begin 
-			video_ram_addr = cpu_addr[12:0];
 			video_ram_wren = cpu_wren;
 			if (ppu_vram_read_en) cpu_data_out = 8'hFF; // if PPU is reading the VRAM, block CPU
 			else 
 			begin // otherwise grant control to CPU
+				video_ram_rdaddr = cpu_addr[12:0];
 				cpu_data_out = video_ram_out; 
 				video_ram_in = cpu_data_in; 
 

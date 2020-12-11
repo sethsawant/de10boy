@@ -41,10 +41,10 @@ logic joypad_int, serial_int, timer_int, lcdc_int, vblank_int;
 
 assign {reset}= ~ (KEY[0]);
 assign placeholder = {ppu_data_in, cpu_data_in};
-// // // c0 = 2.1Mhz 
-// clock_pll clock_generator (.locked(), .inclk0(Clk), .c0(clock), .c1(memclock)); 
-assign clock = Clk;
-assign memclock = Clk;
+// // c0 = 2.1Mhz 
+clock_pll clock_generator (.locked(), .inclk0(Clk), .c0(clock), .c1(memclock)); 
+// assign clock = Clk;
+// assign memclock = Clk;
 
 cpu cpu (.clock(clock), .reset(reset), .data_in(cpu_data_in), 
         .data_out(cpu_data_out), .mem_addr(cpu_mem_addr), .mem_wren(cpu_mem_wren));
@@ -80,7 +80,8 @@ ppu ppu (.data_in(ppu_data_in), .clock(Clk), .cpu_clock(clock), .reset(reset), .
 vga_controller vga (.Clk(Clk), .Reset(reset), .hs(VGA_HS), .vs(VGA_VS), 
 					.blank(vga_blank), .DrawX(DrawX), .DrawY(DrawY) );
 
-frame_buffer fram (.in(buffer_pixel_in), .X_write(ppuX), .Y_write(ppuY), .wren(ppu_frame_wren), .wrclock(Clk), .out(buffer_pixel_out), .X_read(DrawX[7:0]), .Y_read(DrawY[7:0]), .rdclock(Clk));
+frame_buffer fram (.in(buffer_pixel_in), .X_write(ppuX), .Y_write(ppuY), .wren(ppu_frame_wren), .wrclock(Clk), 
+                    .out(buffer_pixel_out), .X_read(DrawX[7:0]), .Y_read(DrawY[7:0]), .rdclock(Clk));
 
     
 endmodule
