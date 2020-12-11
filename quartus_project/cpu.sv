@@ -307,7 +307,17 @@ begin \
 	Z_flag_new = 1'b0; \
 	N_flag_new = 1'b0; \
 	{H_flag_new, tmp} = SP[11:0] + src[11:0]; \
-	{C_flag_new, ``dst``_new} = SP + src; \
+	{C_flag_new, tmp12[7:0]} = SP + src; \
+	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
+	F_ld = 1'b1; \
+end
+
+`define ADD_SP_FLAGS_ONLY(src) \
+begin \
+	Z_flag_new = 1'b0; \
+	N_flag_new = 1'b0; \
+	{H_flag_new, tmp} = SP[11:0] + src[11:0]; \
+	{C_flag_new, tmp12[7:0]} = SP + src; \
 	F_new = {Z_flag_new,N_flag_new,H_flag_new,C_flag_new,4'h0}; \
 	F_ld = 1'b1; \
 end
@@ -2689,7 +2699,7 @@ always_comb begin
 /*    LD D d8    */     LD_16_0          : `getOneByte(OP8)     
                         LD_16_1          : `loadRegFromReg(D,OP8)
 /*      RLA      */     RLA_17           : `RL(A)
-/*     JR r8     */     JR_18_0          : `getOneByte(OP8)
+/*     JR r8     */     JR_18_0          : `getOneByte(OP8)              
                         JR_18_1          : `ADD_NO_FLAGS(PC,`SEXT16(OP8))
                         JR_18_2          : ;
 /*   ADD HL DE   */     ADD_19_0         : `ADD16(HL,DE)
@@ -2961,7 +2971,7 @@ always_comb begin
                         JP_CA_1          : `getHighByte(OP16)      
                         JP_CA_2          : `loadRegFromReg(PC,OP16)
                         JP_CA_3          : ;
-/*   CALL Z a16  */     CALL_CC_0        : `getLowByte(OP16) // get address                          
+/*   CALL Z a16  */     CALL_CC_0        : `getLowByte(OP16)  // get address                          
                         CALL_CC_1        : `getHighByte(OP16)                                        
                         CALL_CC_2        : `pushOneByte(PC, 8) // push current PC to stack
                         CALL_CC_3        : `pushOneByte(PC, 0)                            
@@ -3029,84 +3039,84 @@ always_comb begin
                         CALL_DC_4        : `loadRegFromReg(PC,OP16) // jump to specified address     
                         CALL_DC_5        : ;
 /*   ILLEGAL_DD  */     ILLEGAL_DD_DD    : ;
-/*    SBC A d8   */     SBC_DE_0         : ;
-                        SBC_DE_1         : ;
+/*    SBC A d8   */     SBC_DE_0         : `getOneByte(OP8)
+                        SBC_DE_1         : `SBC(OP8)
 /*    RST 18H    */     RST_DF_0         : `pushOneByte(PC, 8)                     
                         RST_DF_1         : `pushOneByte(PC, 0)                     
                         RST_DF_2         : begin PC_new = 16'h18; PC_ld = 1'b1; end
                         RST_DF_3         : ;
-/*   LDH (a8) A  */     LDH_E0_0         : ;
-                        LDH_E0_1         : ;
-                        LDH_E0_2         : ;
+/*   LDH (a8) A  */     LDH_E0_0         : `getOneByte(OP8)
+                        LDH_E0_1         : begin OP16_new = 16'hFF00 + OP8; OP16_ld = 1'b1; end
+                        LDH_E0_2         : `writeToMemAtRegAddr(OP16,A)
 /*     POP HL    */     POP_E1_0         : `popOneByte(L)
                         POP_E1_1         : `popOneByte(H)
                         POP_E1_2         : ;
-/*    LD (C) A   */     LD_E2_0          : ;
+/*    LD (C) A   */     LD_E2_0          : `readMemFromRegAddr(A,C)
                         LD_E2_1          : ;
 /*   ILLEGAL_E3  */     ILLEGAL_E3_E3    : ;
 /*   ILLEGAL_E4  */     ILLEGAL_E4_E4    : ;
-/*    PUSH HL    */     PUSH_E5_0        : ;
-                        PUSH_E5_1        : ;
+/*    PUSH HL    */     PUSH_E5_0        : `pushOneByte(H, 0)
+                        PUSH_E5_1        : `pushOneByte(L, 0)
                         PUSH_E5_2        : ;
                         PUSH_E5_3        : ;
-/*     AND d8    */     AND_E6_0         : ;
-                        AND_E6_1         : ;
+/*     AND d8    */     AND_E6_0         : `getOneByte(OP8)
+                        AND_E6_1         : `AND(OP8)
 /*    RST 20H    */     RST_E7_0         : `pushOneByte(PC, 8)                     
                         RST_E7_1         : `pushOneByte(PC, 0)                     
                         RST_E7_2         : begin PC_new = 16'h20; PC_ld = 1'b1; end
                         RST_E7_3         : ;
-/*   ADD SP r8   */     ADD_E8_0         : ;
-                        ADD_E8_1         : ;
-                        ADD_E8_2         : ;
+/*   ADD SP r8   */     ADD_E8_0         : `getOneByte(OP8)              
+                        ADD_E8_1         : begin OP16_new = `SEXT16(OP8); OP16_ld = 1'b1; end
+                        ADD_E8_2         : `ADD_SP(OP16)
                         ADD_E8_3         : ;
 /*     JP HL     */     JP_E9            : `loadRegFromReg(PC,HL)
-/*   LD (a16) A  */     LD_EA_0          : ;
-                        LD_EA_1          : ;
-                        LD_EA_2          : ;
+/*   LD (a16) A  */     LD_EA_0          : `getLowByte(OP16) 
+                        LD_EA_1          : `getHighByte(OP16)
+                        LD_EA_2          : `writeToMemAtRegAddr(OP16,A)
                         LD_EA_3          : ;
 /*   ILLEGAL_EB  */     ILLEGAL_EB_EB    : ;
 /*   ILLEGAL_EC  */     ILLEGAL_EC_EC    : ;
 /*   ILLEGAL_ED  */     ILLEGAL_ED_ED    : ;
-/*     XOR d8    */     XOR_EE_0         : ;
-                        XOR_EE_1         : ;
+/*     XOR d8    */     XOR_EE_0         : `getOneByte(OP8) 
+                        XOR_EE_1         : `XOR(OP8)
 /*    RST 28H    */     RST_EF_0         : `pushOneByte(PC, 8)                     
                         RST_EF_1         : `pushOneByte(PC, 0)                     
                         RST_EF_2         : begin PC_new = 16'h28; PC_ld = 1'b1; end
                         RST_EF_3         : ;
-/*   LDH A (a8)  */     LDH_F0_0         : ;
-                        LDH_F0_1         : ;
-                        LDH_F0_2         : ;
+/*   LDH A (a8)  */     LDH_F0_0         : `getOneByte(OP8)
+                        LDH_F0_1         : begin OP16_new = 16'hFF00 + OP8; OP16_ld = 1'b1; end
+                        LDH_F0_2         : `readMemFromRegAddr(A,OP16)
 /*     POP AF    */     POP_F1_0         : `popOneByte(F)
                         POP_F1_1         : `popOneByte(A)
                         POP_F1_2         : ;
-/*    LD A (C)   */     LD_F2_0          : ;
+/*    LD A (C)   */     LD_F2_0          : `readMemFromRegAddr(A,C)
                         LD_F2_1          : ;
-/*       DI      */     DI_F3            : ;
+/*       DI      */     DI_F3            : ; // TODO
 /*   ILLEGAL_F4  */     ILLEGAL_F4_F4    : ;
-/*    PUSH AF    */     PUSH_F5_0        : ;
-                        PUSH_F5_1        : ;
+/*    PUSH AF    */     PUSH_F5_0        : `pushOneByte(A, 0)
+                        PUSH_F5_1        : `pushOneByte(F, 0)
                         PUSH_F5_2        : ;
                         PUSH_F5_3        : ;
-/*     OR d8     */     OR_F6_0          : ;
-                        OR_F6_1          : ;
+/*     OR d8     */     OR_F6_0          : `getOneByte(OP8)
+                        OR_F6_1          : `OR(OP8)
 /*    RST 30H    */     RST_F7_0         : `pushOneByte(PC, 8)                     
                         RST_F7_1         : `pushOneByte(PC, 0)                     
                         RST_F7_2         : begin PC_new = 16'h30; PC_ld = 1'b1; end
                         RST_F7_3         : ;
-/*    LD HL SP   */     LD_F8_0          : ;
-                        LD_F8_1          : ;
-                        LD_F8_2          : ;
-/*    LD SP HL   */     LD_F9_0          : ;
+/* LD HL SP + n  */     LD_F8_0          : `getOneByte(OP8)
+                        LD_F8_1          : begin HL_new = `SEXT16(OP8) + SP; HL_ld = 1'b1; OP16_new = `SEXT16(OP8); OP16_ld = 1'b1; end
+                        LD_F8_2          : `ADD_SP_FLAGS_ONLY(OP16)
+/*    LD SP HL   */     LD_F9_0          : begin HL_new = SP; HL_ld = 1'b1; end
                         LD_F9_1          : ;
-/*   LD A (a16)  */     LD_FA_0          : ;
-                        LD_FA_1          : ;
-                        LD_FA_2          : ;
+/*   LD A (a16)  */     LD_FA_0          : `getLowByte(OP16)
+                        LD_FA_1          : `getHighByte(OP16)
+                        LD_FA_2          : `readMemFromRegAddr(A,OP16)
                         LD_FA_3          : ;
-/*       EI      */     EI_FB            : ;
+/*       EI      */     EI_FB            : ; // TODO
 /*   ILLEGAL_FC  */     ILLEGAL_FC_FC    : ;
 /*   ILLEGAL_FD  */     ILLEGAL_FD_FD    : ;
-/*     CP d8     */     CP_FE_0          : ;
-                        CP_FE_1          : ;
+/*     CP d8     */     CP_FE_0          : `getOneByte(OP8)
+                        CP_FE_1          : `CP(OP8)
 /*    RST 38H    */     RST_FF_0         : `pushOneByte(PC, 8)                     
                         RST_FF_1         : `pushOneByte(PC, 0)                     
                         RST_FF_2         : begin PC_new = 16'h38; PC_ld = 1'b1; end
