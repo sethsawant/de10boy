@@ -11,13 +11,8 @@ module de10boy (
       output             VGA_VS,
       output   [ 3: 0]   VGA_R,
       output   [ 3: 0]   VGA_G,
-      output   [ 3: 0]   VGA_B,
-      output   [15:0] placeholder // prevents RAM modules from being synthesized out 
+      output   [ 3: 0]   VGA_B
 
-
-    //   ///////// ARDUINO /////////
-    //   inout    [15: 0]   ARDUINO_IO,
-    //   inout              ARDUINO_RESET_N 
 );
 
 // cpu signals
@@ -40,11 +35,13 @@ logic ppu_frame_wren;
 logic joypad_int, serial_int, timer_int, lcdc_int, vblank_int;
 
 assign {reset}= ~ (KEY[0]);
-assign placeholder = {ppu_data_in, cpu_data_in};
+// assign placeholder = {ppu_data_in, cpu_data_in};
+
 // // c0 = 2.1Mhz 
 clock_pll clock_generator (.locked(), .inclk0(Clk), .c0(clock), .c1(memclock)); 
 // assign clock = Clk;
 // assign memclock = Clk;
+// assign ppuclock = memclock;
 
 cpu cpu (.clock(clock), .reset(reset), .data_in(cpu_data_in), 
         .data_out(cpu_data_out), .mem_addr(cpu_mem_addr), .mem_wren(cpu_mem_wren));
