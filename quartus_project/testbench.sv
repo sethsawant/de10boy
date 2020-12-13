@@ -14,7 +14,7 @@ logic reset;
 assign KEY[0] = ~reset;
 de10boy gb (.Clk(Clk), 
             // .clock(sim_cpu_clock), 
-            .KEY(KEY), .VGA_HS(), .VGA_VS(), .VGA_R(), .VGA_G(), .VGA_B(), .placeholder() );
+            .KEY(KEY), .VGA_HS(), .VGA_VS(), .VGA_R(), .VGA_G(), .VGA_B() );
 
 logic [15:0] PC,SP,HL;
 logic [7:0] A,F,B,C,D,E,OR;
