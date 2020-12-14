@@ -47,17 +47,12 @@ enum logic [5:0] {WAITING, GET_TILEMAP_WAIT, GET_TILEMAP, GET_TILE0_WAIT,  GET_T
 always_ff @ (posedge cpu_clock)
 begin
 
-    if (reset || (line_cycles == 9'd456)) line_cycles <= 9'h0; // reset counter at the end of a full line
+    if (reset || (line_cycles >= 9'd454)) line_cycles <= 9'h0; // reset counter at the end of a full line
 	else line_cycles <= line_cycles + 2'h2; // add two per CPU clock due to implementation of CPU running at half the freq of actual GB CPU
 
-	if (reset || (cycles == 17'd70224)) begin // reset counter at the end of a full frame
-		cycles <= 17'h0;
-        ppu_mode <= OAM_SEARCH;
-    end
-	else begin
-		cycles <= cycles + 2'h2; // add two per CPU clock due to implementation of CPU running at half the freq of actual GB CPU
-        ppu_mode <= next_ppu_mode;
-    end
+	if (reset || (cycles == 17'd70222)) cycles <= 17'h0; // reset counter at the end of a full frame
+		
+	else cycles <= cycles + 2'h2; // add two per CPU clock due to implementation of CPU running at half the freq of actual GB CPU
 
 end
 
@@ -101,10 +96,17 @@ end
 
 always_ff @ (posedge clock)
 begin
+
+
+    if (reset || (cycles == 17'd0)) ppu_mode <= OAM_SEARCH;
+	else ppu_mode <= next_ppu_mode;
+        
+
 	if (reset) begin
         render_state <= WAITING;
         X_out <= 8'd0;
         Y_out <= 8'd0;
+        // scrollY <= 10'd0;
     end 
 
 	else begin
@@ -116,7 +118,6 @@ begin
         if (render_state == INC_Y) Y_out <= Y_out + 8'd1;
         else if (ppu_mode == VBLANK) Y_out <= 8'd0;
         else Y_out <= Y_out;
-
     end
 end
 
