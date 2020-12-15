@@ -167,6 +167,7 @@ always_comb begin : MEMORY_MAP
 		begin 
 			cpu_data_out = 8'hFF;
 			if (cpu_addr == 16'hFF0F) cpu_data_out = {8'h0}; // TODO
+			if (cpu_addr == 16'hFF44) cpu_data_out = {8'd144}; // TODO LY register
 		end
 
 	// HRAM

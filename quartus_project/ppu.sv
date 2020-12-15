@@ -84,7 +84,7 @@ always_comb begin : X_CALC
 end
 
 always_comb begin : Y_CALC
-    scrollY = 10'd64;
+    scrollY = 10'd0;
     y = Y_out + scrollY;
 end
 
@@ -116,7 +116,8 @@ begin
         else X_out <= X_out;
 
         if (render_state == INC_Y) Y_out <= Y_out + 8'd1;
-        else if (ppu_mode == VBLANK) Y_out <= 8'd0;
+        // else if (ppu_mode == VBLANK) Y_out <= 8'd0;
+        else if (Y_out == 8'd153) Y_out <= 8'd0;
         else Y_out <= Y_out;
     end
 end
