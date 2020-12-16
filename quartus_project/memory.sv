@@ -8,7 +8,8 @@ module memory (
 	input logic ppu_vram_read_en, ppu_oam_read_en, ppu_read_mode,
 	input logic [7:0] LY,
     input logic [7:0] cpu_data_in,
-    output logic [7:0] cpu_data_out, ppu_data_out
+    output logic [7:0] cpu_data_out, ppu_data_out,
+	output logic [7:0] LCDC_out, SCY_out
 );
 
 
@@ -79,6 +80,16 @@ logic boot_rom_off_ld;
 
 register #(.WIDTH(1)) BRM_reg (.in(cpu_data_in[0]), .clock(clock), .reset(reset), .load(boot_rom_off_ld), .out(boot_rom_off));
 
+logic [7:0] SCY;
+logic SCY_ld;
+register #(.WIDTH(8)) SCY_reg (.in(cpu_data_in[7:0]), .clock(clock), .reset(reset), .load(SCY_ld), .out(SCY));
+assign SCY_out = SCY;
+
+logic [7:0] LCDC;
+logic LCDC_ld;
+register #(.WIDTH(8)) LCDC_reg (.in(cpu_data_in[7:0]), .clock(clock), .reset(reset), .load(LCDC_ld), .out(LCDC));
+assign LCDC_out = LCDC;
+
 
 always_comb begin : MEMORY_MAP
 
@@ -106,6 +117,8 @@ always_comb begin : MEMORY_MAP
 	video_ram_in = cpu_data_in;
 
 	boot_rom_off_ld = 1'b0;
+	SCY_ld = 1'b0;
+	LCDC_ld = 1'b0;
 
 	cpu_data_out = 8'hXX;
 
@@ -175,6 +188,8 @@ always_comb begin : MEMORY_MAP
 		begin 
 			cpu_data_out = 8'hFF;
 			if (cpu_addr == 16'hFF0F) cpu_data_out = {8'h0}; // TODO
+			if (cpu_addr == 16'hFF40) begin cpu_data_out = LCDC; LCDC_ld = cpu_wren; end // LCDC Status register
+			if (cpu_addr == 16'hFF42) begin cpu_data_out = SCY; SCY_ld = cpu_wren; end // Scroll Y register
 			if (cpu_addr == 16'hFF44) cpu_data_out = LY; // LY register
 			if (cpu_addr == 16'hFF50) begin cpu_data_out = {7'h0, boot_rom_off}; boot_rom_off_ld = cpu_wren; end
 		end

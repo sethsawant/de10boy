@@ -8,8 +8,8 @@ module frame_buffer (
 );
 
 logic [13:0] buffer_in_idx, buffer_out_idx;
-assign buffer_in_idx = (Y_write*160) + X_write;
-assign buffer_out_idx = (Y_read*160) + X_read;
+assign buffer_in_idx = (Y_write*8'd160) + X_write;
+assign buffer_out_idx = (Y_read*8'd160) + X_read;
 
 // assign wren = 1'b0;
 

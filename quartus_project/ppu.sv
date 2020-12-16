@@ -1,6 +1,7 @@
 module ppu (
     input logic [7:0] data_in,
     input logic clock, cpu_clock, reset,
+    input logic [7:0] SCY, LCDC,
     output logic [12:0]ppu_mem_addr,
     output logic [7:0] X_out, Y_out,
     output logic [1:0] pixel_out,
@@ -17,7 +18,9 @@ module ppu (
 // Vertical blank	            1	            4560 (10 lines)
 // Full frame (scans and vblank)		        70224
 
-
+logic bg_addr_mode;
+assign bg_addr_mode = 0;
+logic [15:0] tiledataBase, tiledataOffset;
 
 logic [16:0] cycles; // number of CPU cycles executed so far
 logic [8:0] line_cycles; // CPU cycles executed so for for the current line
@@ -25,12 +28,6 @@ logic [7:0] y, x; // x and y coordinates in the 256 x 256 window to be rendered
 logic [7:0] scrollY,scrollX;
 logic [9:0] bgTileX, bgTileY; // tile coordinates that need to be fetched to render the pixel at x,y
 logic [2:0] tileX, tileY; // coordinates of pixel inside tile
-
-assign bgTileX = x >> 3; // dividing 8 
-assign bgTileY = y >> 3;
-
-assign tileX = x[2:0]; // same as modulo 8
-assign tileY = y[2:0];
 
 logic [7:0] tilemapByte_new, tilemapByte;
 logic [7:0] tileByte0_new, tileByte0;
@@ -84,8 +81,8 @@ always_comb begin : X_CALC
 end
 
 always_comb begin : Y_CALC
-    scrollY = 10'd0;
-    y = Y_out + scrollY;
+    // scrollY = 10'd0;
+    y = Y_out + SCY;
 end
 
 
@@ -157,6 +154,12 @@ always_comb begin : RENDER_NEXT_STATE_LOGIC
     endcase
 end
 
+// always_comb begin 
+//     tiledataOffset = (tilemapByte << 4) + (tileY << 1) + (tileX >> 1);
+//     if (tiledataOffset < 16'h0800 && bg_addr_mode == 1'b0) tiledataBase = 16'h1000; // tiles 128-255 from block 1
+//     else tiledataBase = 16'h0000;
+// end
+
 always_comb begin : blockName
     tilemapByte_new = tilemapByte;
     tileByte0_new = tileByte0;
@@ -168,6 +171,14 @@ always_comb begin : blockName
     pixel_out = 2'bXX;
     frame_wren = 1'b0;    
 
+    bgTileX = x >> 3; // dividing 8 
+    bgTileY = y >> 3;
+    tileX = x[2:0]; // same as modulo 8
+    tileY = y[2:0];
+    
+    tiledataOffset = (tilemapByte << 4) + (tileY << 1) + (tileX >> 1);
+    tiledataBase = 16'h0000;
+    if (tiledataOffset < 16'h0800 && LCDC[4] == 1'b0) tiledataBase = 16'h1000; // tiles 128-255 from block 1
 
     case (render_state)
 
@@ -180,15 +191,15 @@ always_comb begin : blockName
         end
 
         // use that index to retrieve one line of the tile data (consists of two bytes)
-        GET_TILE0_WAIT : ppu_mem_addr = (16'h0000 + tilemapByte << 4) + (tileY << 1) + (tileX >> 1);
+        GET_TILE0_WAIT : ppu_mem_addr = tiledataBase + (tiledataOffset);
         GET_TILE0 : begin
-            ppu_mem_addr = (16'h0000 + tilemapByte << 4) + (tileY << 1) + (tileX >> 1);
+            ppu_mem_addr = tiledataBase + (tiledataOffset);
             tileByte0_new = data_in;
             tileByte0_ld = 1'b1;
         end
-        GET_TILE1_WAIT : ppu_mem_addr = (16'h0000 + tilemapByte << 4) + (tileY << 1) + (tileX >> 1) + 1'b1;
+        GET_TILE1_WAIT : ppu_mem_addr = tiledataBase + (tiledataOffset) + 1'b1;
         GET_TILE1 : begin
-            ppu_mem_addr = (16'h0000 + tilemapByte << 4) + (tileY << 1) + (tileX >> 1) + 1'b1;
+            ppu_mem_addr = tiledataBase + (tiledataOffset) + 1'b1;
             tileByte1_new = data_in;
             tileByte1_ld = 1'b1;
         end
@@ -205,7 +216,7 @@ end
 
 
 
-
+// (readFromMem(tiledata + (tilenr * 0x10) + (i % 8 * 2) + 1) >> (7 - (j % 8)) & 0x1) * 2;
     
 
 assign ppu_read_mode = 1'b1;
