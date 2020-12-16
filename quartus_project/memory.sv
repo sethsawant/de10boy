@@ -3,10 +3,10 @@
 module memory (
     input logic [15:0] cpu_addr, 
 	input logic [12:0] ppu_addr,
-    input logic clock,
-	input logic boot_rom_en,
+    input logic clock, reset,
     input logic cpu_wren,
 	input logic ppu_vram_read_en, ppu_oam_read_en, ppu_read_mode,
+	input logic [7:0] LY,
     input logic [7:0] cpu_data_in,
     output logic [7:0] cpu_data_out, ppu_data_out
 );
@@ -74,6 +74,12 @@ ram_256 high_ram ( // high RAM (HRAM) (127 B only are used)
 	.q ( high_ram_out )
 	);
 
+logic boot_rom_off_new, boot_rom_off;
+logic boot_rom_off_ld;
+
+register #(.WIDTH(1)) BRM_reg (.in(cpu_data_in[0]), .clock(clock), .reset(reset), .load(boot_rom_off_ld), .out(boot_rom_off));
+
+
 always_comb begin : MEMORY_MAP
 
 	// video_ram_in = ppu_data_in; // by default ppu has VRAM control
@@ -99,12 +105,14 @@ always_comb begin : MEMORY_MAP
 	oam_in = cpu_data_in;
 	video_ram_in = cpu_data_in;
 
+	boot_rom_off_ld = 1'b0;
+
 	cpu_data_out = 8'hXX;
 
 	// cart ROM 
 	if (cpu_addr >= 16'h0000 && cpu_addr <= 16'h7FFF) 
 		begin 
-			if (boot_rom_en && cpu_addr <= 16'h0100) cpu_data_out = boot_rom_out; 
+			if (~boot_rom_off && cpu_addr <= 16'h0100) cpu_data_out = boot_rom_out; 
 			else cpu_data_out = cart_rom_out;
 		end
 
@@ -167,7 +175,8 @@ always_comb begin : MEMORY_MAP
 		begin 
 			cpu_data_out = 8'hFF;
 			if (cpu_addr == 16'hFF0F) cpu_data_out = {8'h0}; // TODO
-			if (cpu_addr == 16'hFF44) cpu_data_out = {8'd144}; // TODO LY register
+			if (cpu_addr == 16'hFF44) cpu_data_out = LY; // LY register
+			if (cpu_addr == 16'hFF50) begin cpu_data_out = {7'h0, boot_rom_off}; boot_rom_off_ld = cpu_wren; end
 		end
 
 	// HRAM

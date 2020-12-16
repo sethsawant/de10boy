@@ -46,9 +46,9 @@ clock_pll clock_generator (.locked(), .inclk0(Clk), .c0(clock), .c1(memclock));
 cpu cpu (.clock(clock), .reset(reset), .data_in(cpu_data_in), 
         .data_out(cpu_data_out), .mem_addr(cpu_mem_addr), .mem_wren(cpu_mem_wren));
 
-memory memory_map (.cpu_addr(cpu_mem_addr), .ppu_addr(ppu_mem_addr), .clock(memclock), .boot_rom_en(1'b1), .cpu_wren(cpu_mem_wren), 
+memory memory_map (.cpu_addr(cpu_mem_addr), .ppu_addr(ppu_mem_addr), .clock(memclock), .reset(reset), .cpu_wren(cpu_mem_wren), 
                 .ppu_vram_read_en(ppu_vram_read_en), .ppu_oam_read_en(ppu_oam_read_en), .cpu_data_in(cpu_data_out),
-                .cpu_data_out(cpu_data_in), .ppu_data_out(ppu_data_in), .ppu_read_mode(ppu_read_mode));
+                .cpu_data_out(cpu_data_in), .ppu_data_out(ppu_data_in), .ppu_read_mode(ppu_read_mode), .LY(ppuY));
 
 
 logic vga_blank;
@@ -60,7 +60,7 @@ assign VGA_B = pixelG;
 assign VGA_G = pixelB;
 
 always_comb begin
-    if (~vga_blank || DrawX >= 9'd160 || DrawY >= 9'd144) {pixelR, pixelG, pixelB} = {4'd0, 4'd0, 4'd0};
+    if (~vga_blank || DrawX >= 9'd160 || DrawY >= 9'd144) {pixelR, pixelG, pixelB} = {4'd0, 4'd0, 3'd0, KEY[1]};
     else begin 
         case (buffer_pixel_out)
             2'd0 : {pixelR, pixelG, pixelB} = {4'd13, 4'd15, 4'd13};
@@ -70,14 +70,14 @@ always_comb begin
         endcase
     end
 end
-ppu ppu (.data_in(ppu_data_in), .clock(Clk), .cpu_clock(clock), .reset(reset), .ppu_mem_addr(ppu_mem_addr), 
+ppu ppu (.data_in(ppu_data_in), .clock(memclock), .cpu_clock(clock), .reset(reset), .ppu_mem_addr(ppu_mem_addr), 
         .X_out(ppuX), .Y_out(ppuY), .pixel_out(buffer_pixel_in), .frame_wren(ppu_frame_wren), .vblank(vblank_int), 
         .vram_access(ppu_vram_read_en), .oam_access(ppu_oam_read_en), .ppu_read_mode(ppu_read_mode)); 
 
 vga_controller vga (.Clk(Clk), .Reset(reset), .hs(VGA_HS), .vs(VGA_VS), 
 					.blank(vga_blank), .DrawX(DrawX), .DrawY(DrawY) );
 
-frame_buffer fram (.in(buffer_pixel_in), .X_write(ppuX), .Y_write(ppuY), .wren(ppu_frame_wren), .wrclock(Clk), 
+frame_buffer fram (.in(buffer_pixel_in), .X_write(ppuX), .Y_write(ppuY), .wren(ppu_frame_wren), .wrclock(memclock), 
                     .out(buffer_pixel_out), .X_read(DrawX[7:0]), .Y_read(DrawY[7:0]), .rdclock(Clk));
 
     
