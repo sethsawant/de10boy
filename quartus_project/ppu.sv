@@ -21,10 +21,10 @@ module ppu (
 
 logic [16:0] cycles; // number of CPU cycles executed so far
 logic [8:0] line_cycles; // CPU cycles executed so for for the current line
-logic [9:0] y, x; // x and y coordinates in the 256 x 256 window to be rendered
-logic [9:0] scrollY,scrollX;
-logic [5:0] bgTileX, bgTileY; // tile coordinates that need to be fetched to render the pixel at x,y
-logic [4:0] tileX, tileY; // coordinates of pixel inside tile
+logic [7:0] y, x; // x and y coordinates in the 256 x 256 window to be rendered
+logic [7:0] scrollY,scrollX;
+logic [9:0] bgTileX, bgTileY; // tile coordinates that need to be fetched to render the pixel at x,y
+logic [2:0] tileX, tileY; // coordinates of pixel inside tile
 
 assign bgTileX = x >> 3; // dividing 8 
 assign bgTileY = y >> 3;
@@ -42,7 +42,7 @@ register #(.WIDTH(8)) tileByte0_reg (.in(tileByte0_new), .clock(clock), .reset(r
 register #(.WIDTH(8)) tileByte1_reg (.in(tileByte1_new), .clock(clock), .reset(reset), .load(tileByte1_ld), .out(tileByte1));
 
 enum logic [1:0] {HBLANK = 2'd0, VBLANK = 2'd1, OAM_SEARCH = 2'd2, ACTIVE_PICTURE = 2'd3} ppu_mode, next_ppu_mode;
-enum logic [5:0] {WAITING, GET_TILEMAP_WAIT, GET_TILEMAP, GET_TILE0_WAIT,  GET_TILE0, GET_TILE1_WAIT, GET_TILE1, DRAW_PIXELS, INC_Y, DONE} render_state, next_render_state;
+enum logic [5:0] {WAITING_NEW_SCANLINE, NEW_SCANLINE, WAITING_OAM, OAM, WAITING_ACTIVE_PICTURE, GET_TILEMAP_WAIT, GET_TILEMAP, GET_TILE0_WAIT,  GET_TILE0, GET_TILE1_WAIT, GET_TILE1, DRAW_PIXELS, DONE} render_state, next_render_state;
 
 always_ff @ (posedge cpu_clock)
 begin
@@ -103,7 +103,7 @@ begin
         
 
 	if (reset) begin
-        render_state <= WAITING;
+        render_state <= WAITING_OAM;
         X_out <= 8'd0;
         Y_out <= 8'd0;
         // scrollY <= 10'd0;
@@ -111,12 +111,24 @@ begin
 
 	else begin
         render_state <= next_render_state;
+        if (ppu_mode == VBLANK) render_state <= WAITING_OAM;
+
+
         if (render_state == DRAW_PIXELS) X_out <= X_out + 8'd1;  
         else if (render_state == DONE) X_out <= 8'd0;
         else X_out <= X_out;
 
-        if (render_state == INC_Y) Y_out <= Y_out + 8'd1;
-        // else if (ppu_mode == VBLANK) Y_out <= 8'd0;
+        if (render_state == NEW_SCANLINE) Y_out <= Y_out + 8'd1;
+        else if (ppu_mode == VBLANK && cycles >= 17'd65664 && cycles < 17'd66120) Y_out <= 8'd144;
+        else if (ppu_mode == VBLANK && cycles >= 17'd66120 && cycles < 17'd66576) Y_out <= 8'd145;
+        else if (ppu_mode == VBLANK && cycles >= 17'd66576 && cycles < 17'd67032) Y_out <= 8'd146;
+        else if (ppu_mode == VBLANK && cycles >= 17'd67032 && cycles < 17'd67488) Y_out <= 8'd147;
+        else if (ppu_mode == VBLANK && cycles >= 17'd67488 && cycles < 17'd67944) Y_out <= 8'd148;
+        else if (ppu_mode == VBLANK && cycles >= 17'd67944 && cycles < 17'd68400) Y_out <= 8'd149;
+        else if (ppu_mode == VBLANK && cycles >= 17'd68400 && cycles < 17'd68856) Y_out <= 8'd150;
+        else if (ppu_mode == VBLANK && cycles >= 17'd68856 && cycles < 17'd69312) Y_out <= 8'd151;
+        else if (ppu_mode == VBLANK && cycles >= 17'd69312 && cycles < 17'd69768) Y_out <= 8'd152;
+        else if (ppu_mode == VBLANK && cycles >= 17'd69768 && cycles < 17'd70224) Y_out <= 8'd153;
         else if (Y_out == 8'd153) Y_out <= 8'd0;
         else Y_out <= Y_out;
     end
@@ -125,7 +137,11 @@ end
 always_comb begin : RENDER_NEXT_STATE_LOGIC
     next_render_state = render_state;
     case (render_state)
-        WAITING : if (ppu_mode == ACTIVE_PICTURE) next_render_state = GET_TILEMAP_WAIT;
+        WAITING_NEW_SCANLINE : if (ppu_mode == OAM_SEARCH) next_render_state = NEW_SCANLINE;
+        NEW_SCANLINE            : next_render_state = WAITING_OAM;
+        WAITING_OAM             : if (ppu_mode == OAM_SEARCH) next_render_state = OAM;
+        OAM                     : next_render_state = WAITING_ACTIVE_PICTURE;
+        WAITING_ACTIVE_PICTURE  : if (ppu_mode == ACTIVE_PICTURE) next_render_state = GET_TILEMAP_WAIT;
         GET_TILEMAP_WAIT        : next_render_state = GET_TILEMAP;
         GET_TILEMAP             : next_render_state = GET_TILE0_WAIT;
         GET_TILE0_WAIT          : next_render_state = GET_TILE0;
@@ -133,11 +149,10 @@ always_comb begin : RENDER_NEXT_STATE_LOGIC
         GET_TILE1_WAIT          : next_render_state = GET_TILE1;
         GET_TILE1               : next_render_state = DRAW_PIXELS;
         DRAW_PIXELS             : begin 
-                                    if (X_out >= 159) next_render_state = INC_Y; // if done with current line, switch to done to begin hblank period
+                                    if (X_out >= 159) next_render_state = DONE; // if done with current line, switch to done to begin hblank period
                                     else if (tileX == 3'd7) next_render_state = GET_TILEMAP_WAIT; // every 8 pixels need to fetch new tile data
                                   end
-        INC_Y                   : next_render_state = DONE;
-        DONE                    : if (ppu_mode != ACTIVE_PICTURE) next_render_state = WAITING;
+        DONE                    : if (ppu_mode != ACTIVE_PICTURE) next_render_state = WAITING_NEW_SCANLINE;
         default: ;
     endcase
 end
@@ -157,9 +172,9 @@ always_comb begin : blockName
     case (render_state)
 
         // get appropriate tile index byte from tile map region
-        GET_TILEMAP_WAIT : ppu_mem_addr = 16'h1800 + 6'd32 * bgTileY + bgTileX;
+        GET_TILEMAP_WAIT : ppu_mem_addr = 16'h1800 + (bgTileY << 5) + bgTileX;
         GET_TILEMAP : begin
-            ppu_mem_addr = 16'h1800 + 6'd32 * bgTileY + bgTileX;
+            ppu_mem_addr = 16'h1800 + (bgTileY << 5) + bgTileX;
             tilemapByte_new = data_in;
             tilemapByte_ld = 1'b1;
         end
