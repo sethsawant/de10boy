@@ -28,6 +28,7 @@ logic [12:0] ppu_mem_addr;
 logic ppu_write_mode; // 0 if ppu is reading oam, 1 if reading vram
 logic [7:0] ppuX, ppuY; // current pixel that ppu is rendering
 logic [1:0] buffer_pixel_in, buffer_pixel_out;
+logic [7:0] LCDC, SCY;
 
 logic ppu_frame_wren;
 
@@ -48,18 +49,25 @@ cpu cpu (.clock(clock), .reset(reset), .data_in(cpu_data_in),
 
 memory memory_map (.cpu_addr(cpu_mem_addr), .ppu_addr(ppu_mem_addr), .clock(memclock), .reset(reset), .cpu_wren(cpu_mem_wren), 
                 .ppu_vram_read_en(ppu_vram_read_en), .ppu_oam_read_en(ppu_oam_read_en), .cpu_data_in(cpu_data_out),
-                .cpu_data_out(cpu_data_in), .ppu_data_out(ppu_data_in), .ppu_read_mode(ppu_read_mode), .LY(ppuY));
+                .cpu_data_out(cpu_data_in), .ppu_data_out(ppu_data_in), .ppu_read_mode(ppu_read_mode), .LY(ppuY), .LCDC_out(LCDC), .SCY_out(SCY));
 
 
 logic vga_blank;
 logic [3:0] pixelR, pixelG, pixelB;
 logic [9:0] DrawX, DrawY;
+logic [7:0] frame_read_x, frame_read_y;
 
 assign VGA_R = pixelR;
 assign VGA_B = pixelG;
 assign VGA_G = pixelB;
 
 always_comb begin
+
+    if (DrawX < 160) frame_read_x = DrawX; 
+    else frame_read_x = 160;
+    if (DrawY < 144) frame_read_y = DrawY; 
+    else frame_read_y = 144;
+
     if (~vga_blank || DrawX >= 9'd160 || DrawY >= 9'd144) {pixelR, pixelG, pixelB} = {4'd0, 4'd0, 3'd0, KEY[1]};
     else begin 
         case (buffer_pixel_out)
@@ -70,15 +78,15 @@ always_comb begin
         endcase
     end
 end
-ppu ppu (.data_in(ppu_data_in), .clock(memclock), .cpu_clock(clock), .reset(reset), .ppu_mem_addr(ppu_mem_addr), 
+ppu ppu (.data_in(ppu_data_in), .clock(memclock), .cpu_clock(clock), .reset(reset), .LCDC(LCDC), .SCY(SCY), .ppu_mem_addr(ppu_mem_addr), 
         .X_out(ppuX), .Y_out(ppuY), .pixel_out(buffer_pixel_in), .frame_wren(ppu_frame_wren), .vblank(vblank_int), 
         .vram_access(ppu_vram_read_en), .oam_access(ppu_oam_read_en), .ppu_read_mode(ppu_read_mode)); 
 
 vga_controller vga (.Clk(Clk), .Reset(reset), .hs(VGA_HS), .vs(VGA_VS), 
 					.blank(vga_blank), .DrawX(DrawX), .DrawY(DrawY) );
 
-frame_buffer fram (.in(buffer_pixel_in), .X_write(ppuX), .Y_write(ppuY), .wren(ppu_frame_wren), .wrclock(memclock), 
-                    .out(buffer_pixel_out), .X_read(DrawX[7:0]), .Y_read(DrawY[7:0]), .rdclock(Clk));
+frame_buffer fram (.in(buffer_pixel_in), .X_write(ppuX), .Y_write(ppuY), .wren(ppu_frame_wren), .wrclock(memclock), .ppu_vblank(vblank_int),
+                    .out(buffer_pixel_out), .X_read(frame_read_x), .Y_read(frame_read_y), .rdclock(Clk));
 
     
 endmodule
