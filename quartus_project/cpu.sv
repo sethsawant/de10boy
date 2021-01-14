@@ -62,9 +62,6 @@ logic C_flag_new, C_flag;
 logic [3:0] tmp;
 logic [11:0] tmp12;
 
-// logic [7:0] ALU_OP1, ALU_OP2, ALU_OUT;
-// logic ALU_ADD, ALU_ADC, ALU_SUB, ALU_SBC, ALU_AND, ALU_OR, ALU_XOR, ALU_CP, ALU_INC, ALU_DEC;
-
 // handling 16 bit combo registers
 always_comb begin : REGISTER_INPUTS
 	BC = {B, C};
@@ -90,9 +87,6 @@ register E_reg (.in(E_final_new), .clock(clock), .reset(reset), .load(E_ld | DE_
 register H_reg (.in(H_final_new), .clock(clock), .reset(reset), .load(H_ld | HL_ld), .out(H));
 register L_reg (.in(L_final_new), .clock(clock), .reset(reset), .load(L_ld | HL_ld), .out(L));
 
-// alu8 alu (.op1(ALU_OP1), .op2(ALU_OP2), .ADD(ALU_ADD), .ADC(ALU_ADC), .SUB(ALU_SUB), .SBC(ALU_SBC), .AND(ALU_AND), .OR(ALU_OR), 
-// 	.XOR(ALU_XOR), .CP(ALU_CP), .INC(ALU_INC), .DEC(ALU_DEC), .Z_flag(.Z_flag), .N_flag(.N_flag), .H_flag(.H_flag), .C_flag(.C_flag), .result(ALU_OUT),
-// 	.Z_flag_new(Z_ALU), .N_flag_new(N_ALU), .H_flag_new(H_ALU), .C_flag_new(C_ALU));
 
 // instruction macros
 `define getOneByte(dst) \
