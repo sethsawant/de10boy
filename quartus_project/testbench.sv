@@ -25,7 +25,7 @@ reg [24*8-1:0] OPCODE;
 logic [16:0] cycles; // number of CPU cycles executed so far
 logic [8:0] line_cycles; // CPU cycles executed so for for the current line
 logic [9:0] y, x; // x and y coordinates in the 256 x 256 window to be rendered
-logic [9:0] scrollY,scrollX;
+logic [7:0] scrollY,scrollX;
 logic [5:0] bgTileX, bgTileY; // tile coordinates that need to be fetched to render the pixel at x,y
 logic [4:0] tileX, tileY; // coordinates of pixel inside tile
 logic [1:0] ppu_mode;
@@ -92,15 +92,15 @@ force gb.memclock = Clk;
 
 
 reset = 1'b1;
-#70 reset = 1'b0;
+#40 reset = 1'b0;
 
-force gb.cpu.PC_new = 16'h000c;
+// force gb.cpu.PC_new = 16'h00E0;
+force gb.cpu.PC_new = 16'h0100;
 force gb.cpu.PC_ld = 1'b1;
-force gb.cpu.SP_new = 16'hFFFE;
+// force gb.cpu.SP_new = 16'hFFFE;
 force gb.cpu.SP_ld = 1'b1;
-#40
-force gb.cpu.PC_new = 16'h000d;
 #20
+
 release gb.cpu.PC_new;
 release gb.cpu.PC_ld;
 release gb.cpu.SP_new;

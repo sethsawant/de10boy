@@ -1,14 +1,14 @@
 module frame_buffer (
     input logic [1:0] in,
-    input logic [7:0] X_write, Y_write,
+    input logic [8:0] X_write, Y_write,
     input logic wren, wrclock,
 	input logic ppu_vblank,
-    input logic [7:0] X_read, Y_read,
+    input logic [8:0] X_read, Y_read,
     input logic rdclock,
 	output logic [1:0] out
 );
 
-
+`define TEMP 16'd16000 // 16'd23040
 
 logic [14:0] buffer_in_idx, buffer_out_idx;
 logic [1:0] buffer0_out;
@@ -26,8 +26,6 @@ end
 always_comb begin : XY_TO_IDX
 	buffer_in_idx = (Y_write*8'd160) + X_write;
 	buffer_out_idx = (Y_read*8'd160) + X_read; 
-	if ((Y_write*8'd160) + X_write >= 16'd23040) buffer_in_idx = 16'd23040;
-	if ((Y_read*8'd160) + X_read >= 16'd23040) buffer_out_idx = 16'd23040;
 end
 
 always_comb begin : BUFFER_IO

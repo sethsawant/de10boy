@@ -3,7 +3,7 @@ module ppu (
     input logic clock, cpu_clock, reset,
     input logic [7:0] SCY, LCDC,
     output logic [12:0]ppu_mem_addr,
-    output logic [7:0] X_out, Y_out,
+    output logic [8:0] X_out, Y_out,
     output logic [1:0] pixel_out,
     output logic frame_wren, vblank, vram_access, oam_access, ppu_read_mode
 );
@@ -81,7 +81,6 @@ always_comb begin : X_CALC
 end
 
 always_comb begin : Y_CALC
-    // scrollY = 10'd0;
     y = Y_out + SCY;
 end
 
@@ -101,9 +100,8 @@ begin
 
 	if (reset) begin
         render_state <= WAITING_OAM;
-        X_out <= 8'd0;
-        Y_out <= 8'd0;
-        // scrollY <= 10'd0;
+        X_out <= 9'd0;
+        Y_out <= 9'd0;
     end 
 
 	else begin
@@ -111,22 +109,22 @@ begin
         if (ppu_mode == VBLANK) render_state <= WAITING_OAM;
 
 
-        if (render_state == DRAW_PIXELS) X_out <= X_out + 8'd1;  
-        else if (render_state == DONE) X_out <= 8'd0;
+        if (render_state == DRAW_PIXELS) X_out <= X_out + 9'd1;  
+        else if (render_state == DONE) X_out <= 9'd0;
         else X_out <= X_out;
 
-        if (render_state == NEW_SCANLINE) Y_out <= Y_out + 8'd1;
-        else if (ppu_mode == VBLANK && cycles >= 17'd65664 && cycles < 17'd66120) Y_out <= 8'd144;
-        else if (ppu_mode == VBLANK && cycles >= 17'd66120 && cycles < 17'd66576) Y_out <= 8'd145;
-        else if (ppu_mode == VBLANK && cycles >= 17'd66576 && cycles < 17'd67032) Y_out <= 8'd146;
-        else if (ppu_mode == VBLANK && cycles >= 17'd67032 && cycles < 17'd67488) Y_out <= 8'd147;
-        else if (ppu_mode == VBLANK && cycles >= 17'd67488 && cycles < 17'd67944) Y_out <= 8'd148;
-        else if (ppu_mode == VBLANK && cycles >= 17'd67944 && cycles < 17'd68400) Y_out <= 8'd149;
-        else if (ppu_mode == VBLANK && cycles >= 17'd68400 && cycles < 17'd68856) Y_out <= 8'd150;
-        else if (ppu_mode == VBLANK && cycles >= 17'd68856 && cycles < 17'd69312) Y_out <= 8'd151;
-        else if (ppu_mode == VBLANK && cycles >= 17'd69312 && cycles < 17'd69768) Y_out <= 8'd152;
-        else if (ppu_mode == VBLANK && cycles >= 17'd69768 && cycles < 17'd70224) Y_out <= 8'd153;
-        else if (Y_out == 8'd153) Y_out <= 8'd0;
+        if (render_state == NEW_SCANLINE) Y_out <= Y_out + 9'd1;
+        else if (ppu_mode == VBLANK && cycles >= 17'd65664 && cycles < 17'd66120) Y_out <= 9'd144;
+        else if (ppu_mode == VBLANK && cycles >= 17'd66120 && cycles < 17'd66576) Y_out <= 9'd145;
+        else if (ppu_mode == VBLANK && cycles >= 17'd66576 && cycles < 17'd67032) Y_out <= 9'd146;
+        else if (ppu_mode == VBLANK && cycles >= 17'd67032 && cycles < 17'd67488) Y_out <= 9'd147;
+        else if (ppu_mode == VBLANK && cycles >= 17'd67488 && cycles < 17'd67944) Y_out <= 9'd148;
+        else if (ppu_mode == VBLANK && cycles >= 17'd67944 && cycles < 17'd68400) Y_out <= 9'd149;
+        else if (ppu_mode == VBLANK && cycles >= 17'd68400 && cycles < 17'd68856) Y_out <= 9'd150;
+        else if (ppu_mode == VBLANK && cycles >= 17'd68856 && cycles < 17'd69312) Y_out <= 9'd151;
+        else if (ppu_mode == VBLANK && cycles >= 17'd69312 && cycles < 17'd69768) Y_out <= 9'd152;
+        else if (ppu_mode == VBLANK && cycles >= 17'd69768 && cycles < 17'd70224) Y_out <= 9'd153;
+        else if (Y_out == 9'd153) Y_out <= 9'd0;
         else Y_out <= Y_out;
     end
 end
@@ -146,19 +144,13 @@ always_comb begin : RENDER_NEXT_STATE_LOGIC
         GET_TILE1_WAIT          : next_render_state = GET_TILE1;
         GET_TILE1               : next_render_state = DRAW_PIXELS;
         DRAW_PIXELS             : begin 
-                                    if (X_out >= 159) next_render_state = DONE; // if done with current line, switch to done to begin hblank period
+                                    if (X_out >= 9'd159) next_render_state = DONE; // if done with current line, switch to done to begin hblank period
                                     else if (tileX == 3'd7) next_render_state = GET_TILEMAP_WAIT; // every 8 pixels need to fetch new tile data
                                   end
         DONE                    : if (ppu_mode != ACTIVE_PICTURE) next_render_state = WAITING_NEW_SCANLINE;
         default: ;
     endcase
 end
-
-// always_comb begin 
-//     tiledataOffset = (tilemapByte << 4) + (tileY << 1) + (tileX >> 1);
-//     if (tiledataOffset < 16'h0800 && bg_addr_mode == 1'b0) tiledataBase = 16'h1000; // tiles 128-255 from block 1
-//     else tiledataBase = 16'h0000;
-// end
 
 always_comb begin : blockName
     tilemapByte_new = tilemapByte;
@@ -214,16 +206,7 @@ always_comb begin : blockName
     endcase
 end
 
-
-
-// (readFromMem(tiledata + (tilenr * 0x10) + (i % 8 * 2) + 1) >> (7 - (j % 8)) & 0x1) * 2;
-    
-
 assign ppu_read_mode = 1'b1;
-
-
-
-
 
 
 endmodule

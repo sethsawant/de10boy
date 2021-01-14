@@ -55,20 +55,23 @@ memory memory_map (.cpu_addr(cpu_mem_addr), .ppu_addr(ppu_mem_addr), .clock(memc
 logic vga_blank;
 logic [3:0] pixelR, pixelG, pixelB;
 logic [9:0] DrawX, DrawY;
-logic [7:0] frame_read_x, frame_read_y;
+logic [8:0] frame_read_x, frame_read_y;
 
 assign VGA_R = pixelR;
 assign VGA_B = pixelG;
 assign VGA_G = pixelB;
 
+`define SCREEN_X_OFFSET 9'd20 
+`define SCREEN_Y_OFFSET 9'd20 
+
 always_comb begin
 
-    if (DrawX < 160) frame_read_x = DrawX; 
+    if (DrawX > 10'h0 + `SCREEN_X_OFFSET && DrawX < 160 + `SCREEN_X_OFFSET) frame_read_x = DrawX - `SCREEN_X_OFFSET; 
     else frame_read_x = 160;
-    if (DrawY < 144) frame_read_y = DrawY; 
+    if (DrawY > 10'h0 + `SCREEN_Y_OFFSET && DrawY < 144 + `SCREEN_Y_OFFSET) frame_read_y = DrawY - `SCREEN_Y_OFFSET; 
     else frame_read_y = 144;
 
-    if (~vga_blank || DrawX >= 9'd160 || DrawY >= 9'd144) {pixelR, pixelG, pixelB} = {4'd0, 4'd0, 3'd0, KEY[1]};
+    if (~vga_blank || DrawX < 10'h0 + `SCREEN_X_OFFSET || DrawX >= 9'd160 + `SCREEN_X_OFFSET || DrawY < 10'h0 + `SCREEN_Y_OFFSET || DrawY >= 9'd144 + `SCREEN_Y_OFFSET) {pixelR, pixelG, pixelB} = {4'd0, 4'd0, 3'd0, KEY[1]};
     else begin 
         case (buffer_pixel_out)
             2'd0 : {pixelR, pixelG, pixelB} = {4'd13, 4'd15, 4'd13};
